@@ -1,7 +1,8 @@
 import cv2
 import numpy as np
+from utils import find_LR_lines, draw_lane
 
-cap = cv2.VideoCapture("ex_track_2.mp4")
+cap = cv2.VideoCapture("strate.mp4")
 width, height = 1200, 600
 
 # 관심영역 설정 후 이미지
@@ -10,9 +11,9 @@ right_roi = [(600, height), (1200, height), (900, 0)]
 line_thick = 10
 
 #  BGR 제한 값 설정
-blue_threshold = 10
-green_threshold = 190
-red_threshold = 230
+blue_threshold = 180
+green_threshold = 100
+red_threshold = 100
 bgr_threshold = [blue_threshold, green_threshold, red_threshold]
 
 
@@ -105,7 +106,7 @@ def make_coordinates(img, line_type, line_parameters):  # 라인 범위 지정
         slope, intercept = 0.001, 0
     # print(img.shape)
     y1 = img.shape[0]
-    y2 = int(y1*(3/5))  # 이거 변경하면 라인이 따지는 길이가 변경됨
+    y2 = int(y1*(2/5))  # 이거 변경하면 라인이 따지는 길이가 변경됨
 
     x1 = int((y1 - intercept) / slope)
     x2 = int((y2 - intercept) / slope)
@@ -143,11 +144,13 @@ while (True):
     lines = cv2.HoughLinesP(cropped_image, 2, np.pi/180,
                             100, np.array([]), minLineLength=40, maxLineGap=5)
 
+    # Drawing the lines back down onto the road
     averaged_lines = average_slope_intercept(lane_img, lines)
 
     line_img = display_lines(color_interted_img, averaged_lines)
 
-    combo_img = cv2.addWeighted(color_interted_img, 0.6, line_img, 1, 1)
+    # combo_img = cv2.addWeighted(color_interted_img, 0.6, line_img, 1, 1)
+    combo_img = cv2.addWeighted(lane_img, 0.6, line_img, 1, 1)
 
     cv2.imshow("ROI", combo_img)
     # cv2.imshow("REAL", color_interted_img)
