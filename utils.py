@@ -8,7 +8,7 @@ class Line:
         # 마지막 반복에서 라인이 감지되었습니까?
         self.detected = False
         # Set the width of the windows +/- margin
-        self.window_margin = 120
+        self.window_margin = 150
         # 마지막 n회 반복에 대한 적합선의 x 값
         self.prevx = []
         # 가장 최근 피팅에 대한 다항식 계수
@@ -370,7 +370,7 @@ def draw_lane(img, left_line, right_line, lane_color=(255, 0, 255), road_color=(
 
     # Draw the lane onto the warped blank image
     cv2.fillPoly(window_img, np.int_([pts]), road_color)
-    result = cv2.addWeighted(img, 1, window_img, 0.3, 0)
+    result = cv2.addWeighted(img, 1, window_img, 0.2, 0)
 
     return result, window_img
 

@@ -7,12 +7,12 @@ from utils import Line, find_LR_lines, draw_lane
 left_line = Line()
 right_line = Line()
 
-cap = cv2.VideoCapture("strate.mp4")
+cap = cv2.VideoCapture("curve1.mp4")
 width, height = 1280, 720
 
 # 관심영역 설정 후 이미지
 vertices = np.array([[
-    (150, 500), (350, 80), (1050, 500), (800, 80)
+    (60, 700), (260, 250), (1220, 700), (950, 250)
 ]], dtype=np.int32)
 
 # 라인 굵기
@@ -150,9 +150,10 @@ while (cap.isOpened()):
     # # combo_img = cv2.addWeighted(color_interted_img, 0.6, line_img, 1, 1)
     combo_img = cv2.addWeighted(lane_img, 0.3, w_comb_result, 1, 1)
 
-    # cv2.imshow("ROI", combo_img)
-    resized_img = cv2.resize(line_img, (640, 360))
-    cv2.imshow("Result", resized_img)
+    cv2.imshow("ROI", combo_img)
+    # 결과 도출을 위한 리사이징
+    # resized_img = cv2.resize(combo_img, (640, 360))
+    # cv2.imshow("Result", resized_img)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
