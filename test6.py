@@ -1,18 +1,26 @@
 import cv2
 import numpy as np
-from utils import find_LR_lines, draw_lane
+# from utils import find_LR_lines, draw_lane
+from utils import Line, find_LR_lines, draw_lane
+
+# 라인 객체 생성
+left_line = Line()
+right_line = Line()
 
 cap = cv2.VideoCapture("strate.mp4")
-width, height = 1200, 600
+width, height = 1280, 720
 
 # 관심영역 설정 후 이미지
-left_roi = [(0, height), (600, height), (300, 0)]
-right_roi = [(600, height), (1200, height), (900, 0)]
-line_thick = 10
+vertices = np.array([[
+    (150, 500), (350, 80), (1050, 500), (800, 80)
+]], dtype=np.int32)
+
+# 라인 굵기
+line_thick = 2
 
 #  BGR 제한 값 설정
 blue_threshold = 180
-green_threshold = 100
+green_threshold = 200
 red_threshold = 100
 bgr_threshold = [blue_threshold, green_threshold, red_threshold]
 
@@ -38,7 +46,7 @@ def region_of_interest(img, range):     # 관심영역 지정
     return masked_image
 
 
-def draw_lines(img, lines, color=[0, 0, 255], thickness=2):     # 선 그리기
+def draw_lines(img, lines, color=[0, 0, 255], thickness=1):     # 선 그리기
     for line in lines:
         for x1, y1, x2, y2 in line:
             cv2.line(img, (x1, y1), (x2, y2), color, thickness)
@@ -113,47 +121,38 @@ def make_coordinates(img, line_type, line_parameters):  # 라인 범위 지정
     return np.array([x1, y1, x2, y2])
 
 
-while (True):
+while (cap.isOpened()):
     ret, img = cap.read()
     lane_img = cv2.resize(img, (width, height))
 
     # 색상 반전
     color_interted_img = color_invert(lane_img)
 
-    # 그레이 스케일링
-    # gray = grayscale(interted_image)
-
     #  이미지의 노이즈를 줄이기 위해 가우시안 효과 적용
     gaussian = gaussian_blur(color_interted_img, 5)
 
-    # 캐니 적용
-    canny_img = canny(gaussian, 60, 180)
-
-    # left_cropped_image = region_of_interest(canny_img, left_roi)
-    # right_cropped_image = region_of_interest(canny_img, right_roi)
-
-    vertices = np.array([[
-        (150, 500), (300, 80), (1050, 500), (900, 80)
-    ]], dtype=np.int32)
-
+    # 캐니 & 관심영역 적용
+    canny_img = canny(gaussian, 40, 120)
     cropped_image = region_of_interest(canny_img, vertices)
 
-    #  관심영역 합치기
-    # roi_masked_image = mix_roi(left_cropped_image, right_cropped_image)
-
+    # 라인 보정
     lines = cv2.HoughLinesP(cropped_image, 2, np.pi/180,
                             100, np.array([]), minLineLength=40, maxLineGap=5)
 
-    # Drawing the lines back down onto the road
     averaged_lines = average_slope_intercept(lane_img, lines)
-
     line_img = display_lines(color_interted_img, averaged_lines)
 
-    # combo_img = cv2.addWeighted(color_interted_img, 0.6, line_img, 1, 1)
-    combo_img = cv2.addWeighted(lane_img, 0.6, line_img, 1, 1)
+    # 좌우 라인 검출
+    searching_img = find_LR_lines(cropped_image, left_line, right_line)
+    w_comb_result, w_color_result = draw_lane(
+        searching_img, left_line, right_line)
 
-    cv2.imshow("ROI", combo_img)
-    # cv2.imshow("REAL", color_interted_img)
+    # # combo_img = cv2.addWeighted(color_interted_img, 0.6, line_img, 1, 1)
+    combo_img = cv2.addWeighted(lane_img, 0.3, w_comb_result, 1, 1)
+
+    # cv2.imshow("ROI", combo_img)
+    resized_img = cv2.resize(line_img, (640, 360))
+    cv2.imshow("Result", resized_img)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
