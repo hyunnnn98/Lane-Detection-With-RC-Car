@@ -1,27 +1,22 @@
 import cv2
 import numpy as np
+from calibration import calib, undistort
+from threshold import gradient_combine, hls_combine, comb_result
 from utils import Line, warp_image, find_LR_lines, draw_lane, print_road_status, print_road_map
 
+cap = cv2.VideoCapture("strate.mp4")
+
+# 라인 객체 생성
 left_line = Line()
 right_line = Line()
 
+# threshold 값
 th_sobelx, th_sobely, th_mag, th_dir = (
     35, 100), (30, 255), (30, 255), (0.7, 1.3)
 th_h, th_l, th_s = (10, 100), (0, 60), (85, 255)
 
-cap = cv2.VideoCapture("strate.mp4")
-width, height = 1200, 600
-
-# 관심영역 설정 후 이미지
-left_roi = [(0, height), (600, height), (300, 0)]
-right_roi = [(600, height), (1200, height), (900, 0)]
-line_thick = 10
-
-#  BGR 제한 값 설정
-blue_threshold = 180
-green_threshold = 100
-red_threshold = 100
-bgr_threshold = [blue_threshold, green_threshold, red_threshold]
+# camera matrix & distortion coefficient
+# mtx, dist = calib()
 
 
 def grayscale(img):
@@ -57,26 +52,19 @@ def display_lines(img, lines):      # 화면에 라인 표시
     if lines is not None:
         for x1, y1, x2, y2 in lines:
             # print(line)
-            cv2.line(line_image, (x1, y1), (x2, y2), (0, 255, 0), line_thick)
+            cv2.line(line_image, (x1, y1), (x2, y2), (0, 255, 0), 10)
 
     return line_image
 
+# def color_invert(img):  # 색 반전
+#     inverted_image = np.copy(img)
+#     thresholds = (img[:, :, 1] < bgr_threshold[0]) \
+#         | (img[:, :, 1] < bgr_threshold[1]) \
+#         | (img[:, :, 2] < bgr_threshold[2])
 
-def mix_roi(left_roi, right_roi):   # 관심영역 레이어 마스크 설정
-    roi_masked_image = cv2.add(left_roi, right_roi)
+#     inverted_image[thresholds] = [0, 0, 0]
 
-    return roi_masked_image
-
-
-def color_invert(img):  # 색 반전
-    inverted_image = np.copy(img)
-    thresholds = (img[:, :, 1] < bgr_threshold[0]) \
-        | (img[:, :, 1] < bgr_threshold[1]) \
-        | (img[:, :, 2] < bgr_threshold[2])
-
-    inverted_image[thresholds] = [0, 0, 0]
-
-    return inverted_image
+#     return inverted_image
 
 
 def average_slope_intercept(image, lines):
@@ -120,51 +108,90 @@ def make_coordinates(img, line_type, line_parameters):  # 라인 범위 지정
     return np.array([x1, y1, x2, y2])
 
 
-while (True):
-    ret, img = cap.read()
-    lane_img = cv2.resize(img, (width, height))
+if __name__ == '__main__':
+    while (cap.isOpened()):
+        ret, img = cap.read()
 
-    # 색상 반전
-    color_interted_img = color_invert(lane_img)
+        # # resize video
+        # lane_img = cv2.resize(img, None, fx=0.5,
+        #                       fy=0.5, interpolation=cv2.INTER_AREA)
+        lane_img = cv2.resize(img, (1280, 720))
 
-    # 그레이 스케일링
-    # gray = grayscale(interted_image)
+        rows, cols = lane_img.shape[:2]
+        # cv2.imshow('warp', lane_img)
+        print(rows, cols)
+        # 색상 반전
+        combined_gradient = gradient_combine(
+            lane_img, th_sobelx, th_sobely, th_mag, th_dir)
+        combined_hls = hls_combine(lane_img, th_h, th_l, th_s)
+        combined_result = comb_result(combined_gradient, combined_hls)
 
-    #  이미지의 노이즈를 줄이기 위해 가우시안 효과 적용
-    gaussian = gaussian_blur(color_interted_img, 5)
+        c_rows, c_cols = combined_result.shape[:2]
+        s_LTop2, s_RTop2 = [c_cols / 2 - 24, 5], [c_cols / 2 + 24, 5]
+        s_LBot2, s_RBot2 = [110, c_rows], [c_cols - 110, c_rows]
 
-    # 캐니 적용
-    canny_img = canny(gaussian, 60, 180)
+        src = np.float32([s_LBot2, s_LTop2, s_RTop2, s_RBot2])
+        # 좌상 좌하 우상 우하
+        dst = np.float32([(0, 720), (0, 0), (550, 0), (550, 720)])
 
-    # left_cropped_image = region_of_interest(canny_img, left_roi)
-    # right_cropped_image = region_of_interest(canny_img, right_roi)
+        warp_img, M, Minv = warp_image(
+            combined_result, src, dst, (720, 720))
+        cv2.imshow('warp', warp_img)
 
-    vertices = np.array([[
-        (150, 500), (300, 80), (1050, 500), (900, 80)
-    ]], dtype=np.int32)
+        searching_img = find_LR_lines(warp_img, left_line, right_line)
 
-    cropped_image = region_of_interest(canny_img, vertices)
+        w_comb_result, w_color_result = draw_lane(
+            searching_img, left_line, right_line)
+        # cv2.imshow('w_comb_result', w_comb_result)
 
-    #  관심영역 합치기
-    # roi_masked_image = mix_roi(left_cropped_image, right_cropped_image)
+        # Drawing the lines back down onto the road
+        color_result = cv2.warpPerspective(
+            w_color_result, Minv, (c_cols, c_rows))
+        lane_color = np.zeros_like(lane_img)
+        lane_color[220:rows - 12, 0:cols] = color_result
 
-    lines = cv2.HoughLinesP(cropped_image, 2, np.pi/180,
-                            100, np.array([]), minLineLength=40, maxLineGap=5)
+        # Combine the result with the original image
+        result = cv2.addWeighted(lane_img, 1, lane_color, 0.3, 0)
+        # cv2.imshow('result', result.astype(np.uint8))
 
-    # Drawing the lines back down onto the road
-    averaged_lines = average_slope_intercept(lane_img, lines)
+        info, info2 = np.zeros_like(result),  np.zeros_like(result)
+        info[5:110, 5:190] = (255, 255, 255)
+        info2[5:110, cols-111:cols-6] = (255, 255, 255)
+        info = cv2.addWeighted(result, 1, info, 0.2, 0)
+        info2 = cv2.addWeighted(info, 1, info2, 0.2, 0)
+        road_map = print_road_map(w_color_result, left_line, right_line)
+        info2[10:105, cols-106:cols-11] = road_map
+        info2 = print_road_status(info2, left_line, right_line)
+        cv2.imshow('road info', info2)
+        # cv2.imshow('warp', searching_img)
+        # 캐니 적용
+        # canny_img = canny(gaussian, 60, 180)
 
-    line_img = display_lines(color_interted_img, averaged_lines)
+        # # left_cropped_image = region_of_interest(canny_img, left_roi)
+        # # right_cropped_image = region_of_interest(canny_img, right_roi)
 
-    # combo_img = cv2.addWeighted(color_interted_img, 0.6, line_img, 1, 1)
-    combo_img = cv2.addWeighted(lane_img, 0.6, line_img, 1, 1)
+        # vertices = np.array([[
+        #     (150, 500), (300, 80), (1050, 500), (900, 80)
+        # ]], dtype=np.int32)
 
-    cv2.imshow("ROI", combo_img)
-    # cv2.imshow("REAL", color_interted_img)
+        # cropped_image = region_of_interest(canny_img, vertices)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+        # lines = cv2.HoughLinesP(cropped_image, 2, np.pi/180,
+        #                         100, np.array([]), minLineLength=40, maxLineGap=5)
 
+        # # Drawing the lines back down onto the road
+        # averaged_lines = average_slope_intercept(lane_img, lines)
 
-cap.release()
-cv2.destroyAllWindows()
+        # line_img = display_lines(color_interted_img, averaged_lines)
+
+        # # combo_img = cv2.addWeighted(color_interted_img, 0.6, line_img, 1, 1)
+        # combo_img = cv2.addWeighted(lane_img, 0.6, line_img, 1, 1)
+
+        # cv2.imshow("ROI", combo_img)
+        # cv2.imshow("REAL", color_interted_img)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
