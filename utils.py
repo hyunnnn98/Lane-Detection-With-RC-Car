@@ -50,7 +50,7 @@ def rad_of_curvature(left_line, right_line):
     # Define conversions in x and y from pixels space to meters
     # 픽셀 공간에서 미터로의 x 및 y 변환 정의
     width_lanes = abs(right_line.startx - left_line.startx)
-    ym_per_pix = 30 / 720  # y 차원의 픽셀당 미터
+    ym_per_pix = 22 / 720  # y 차원의 픽셀당 미터
     # meters per pixel in x dimension
     xm_per_pix = 3.7*(720/1280) / width_lanes
 
@@ -87,6 +87,190 @@ def smoothing(lines, pre_lines=3):
 
     return avg_line
 
+
+# def blind_search(b_img, left_line, right_line):
+#     """
+#     blind search - first frame, lost lane lines
+#     using histogram & sliding window
+#     give different weight in color info(0.8) & gradient info(0.2) using weighted average
+#     """
+#     # Create an output image to draw on and  visualize the result
+#     # output = np.dstack((b_img, b_img, b_img)) * 255
+#     output = cv2.cvtColor(b_img, cv2.COLOR_GRAY2RGB)
+
+#     # Choose the number of sliding windows
+#     num_windows = 9
+#     # Set height of windows
+#     window_height = np.int(b_img.shape[0] / num_windows)
+
+#     # Identify the x and y positions of all nonzero pixels in the image
+#     nonzero = b_img.nonzero()
+#     nonzeroy = np.array(nonzero[0])
+#     nonzerox = np.array(nonzero[1])
+
+#     if left_line.startx == None:
+#         # Take a histogram of the bottom half of the image
+#         histogram = np.sum(b_img[int(b_img.shape[0] * 2 / 3):, :], axis=0)
+#         midpoint = np.int(histogram.shape[0] / 2)
+#         start_leftX = np.argmax(histogram[:midpoint])
+#         start_rightX = np.argmax(histogram[midpoint:]) + midpoint
+
+#         # Current positions to be updated for each window
+#         current_leftX = start_leftX
+#         current_rightX = start_rightX
+#     else:
+#         current_leftX = left_line.startx
+#         current_rightX = right_line.startx
+
+#     # Set minimum number of pixels found to recenter window
+#     min_num_pixel = 50
+
+#     # Create empty lists to receive left and right lane pixel indices
+#     win_left_lane = []
+#     win_right_lane = []
+
+#     left_weight_x, left_weight_y = [], []
+#     right_weight_x, right_weight_y = [], []
+#     window_margin = left_line.window_margin
+
+#     # Step through the windows one by one
+#     for window in range(num_windows):
+#         # Identify window boundaries in x and y (and right and left)
+#         win_y_low = b_img.shape[0] - (window + 1) * window_height
+#         win_y_high = b_img.shape[0] - window * window_height
+#         win_leftx_min = int(current_leftX - window_margin)
+#         win_leftx_max = int(current_leftX + window_margin)
+#         win_rightx_min = int(current_rightX - window_margin)
+#         win_rightx_max = int(current_rightX + window_margin)
+
+#         if win_rightx_max > 720:
+#             win_rightx_min = b_img.shape[1] - 2 * window_margin
+#             win_rightx_max = b_img.shape[1]
+
+#         # Draw the windows on the visualization image
+#         cv2.rectangle(output, (win_leftx_min, win_y_low),
+#                       (win_leftx_max, win_y_high), (0, 255, 0), 2)
+#         cv2.rectangle(output, (win_rightx_min, win_y_low),
+#                       (win_rightx_max, win_y_high), (0, 255, 0), 2)
+
+#         # Identify the nonzero pixels in x and y within the window
+#         left_window_inds = ((nonzeroy >= win_y_low) & (nonzeroy <= win_y_high) & (nonzerox >= win_leftx_min) & (
+#             nonzerox <= win_leftx_max)).nonzero()[0]
+#         right_window_inds = ((nonzeroy >= win_y_low) & (nonzeroy <= win_y_high) & (nonzerox >= win_rightx_min) & (
+#             nonzerox <= win_rightx_max)).nonzero()[0]
+#         # Append these indices to the lists
+#         win_left_lane.append(left_window_inds)
+#         win_right_lane.append(right_window_inds)
+
+#         # If you found > minpix pixels, recenter next window on their mean position
+#         if len(left_window_inds) > min_num_pixel:
+
+#             win = b_img[win_y_low:win_y_high, win_leftx_min:win_leftx_max]
+#             temp, count_g, count_h = 0, 0, 0
+#             for i in range(win.shape[1]):
+#                 for j in range(win.shape[0]):
+#                     if win[j, i] >= 70 and win[j, i] <= 130:
+#                         temp += 0.2 * (i + win_leftx_min)
+#                         count_g += 1
+#                         output[j + win_y_low, i + win_leftx_min] = (255, 0, 0)
+#                     elif win[j, i] > 220:
+#                         temp += 0.8 * (i + win_leftx_min)
+#                         count_h += 1
+#                         output[j + win_y_low, i + win_leftx_min] = (0, 0, 255)
+#                         # else:
+#                         #    output[j + win_y_low, i + win_leftx_min] = (255, 255, 255)
+#             if not (count_h == 0 and count_g == 0):
+#                 left_w_x = temp / (0.2 * count_g + 0.8 *
+#                                    count_h)  # + win_leftx_min
+#                 #cv2.circle(output, (int(left_w_x), int((win_y_low + win_y_high) / 2)), 10, (255, 0, 0), -1)
+#                 #cv2.circle(output, (int(current_leftX), int((win_y_low + win_y_high) / 2)), 10, (255, 0, 0), -1)
+#                 left_weight_x.append(int(left_w_x))
+#                 left_weight_y.append(int((win_y_low + win_y_high) / 2))
+
+#                 current_leftX = int(left_w_x)
+
+#         if len(right_window_inds) > min_num_pixel:
+
+#             win = b_img[win_y_low:win_y_high, win_rightx_min:win_rightx_max]
+#             temp, count_g, count_h = 0, 0, 0
+#             for i in range(win.shape[1]):
+#                 for j in range(win.shape[0]):
+#                     if win[j, i] >= 70 and win[j, i] <= 130:
+#                         temp += 0.2 * (i + win_rightx_min)
+#                         count_g += 1
+#                         output[j + win_y_low, i + win_rightx_min] = (255, 0, 0)
+#                     elif win[j, i] > 200:
+#                         temp += 0.8 * (i + win_rightx_min)
+#                         count_h += 1
+#                         output[j + win_y_low, i + win_rightx_min] = (0, 0, 255)
+#                         # else:
+#                         #    output[j + win_y_low, i + win_rightx_min] = (255, 255, 255)
+#             if not (count_h == 0 and count_g == 0):
+#                 right_w_x = temp / (0.2 * count_g + 0.8 *
+#                                     count_h)  # + win_leftx_min
+#                 #cv2.circle(output, (int(right_w_x), int((win_y_low + win_y_high) / 2)), 10, (255, 0, 0), -1)
+#                 #cv2.circle(output, (int(current_rightX), int((win_y_low + win_y_high) / 2)), 10, (255, 0, 0), -1)
+#                 right_weight_x.append(int(right_w_x))
+#                 right_weight_y.append(int((win_y_low + win_y_high) / 2))
+#                 current_rightX = int(right_w_x)
+
+#     # Concatenate the arrays of indices
+#     win_left_lane = np.concatenate(win_left_lane)
+#     win_right_lane = np.concatenate(win_right_lane)
+
+#     # Extract left and right line pixel positions
+#     leftx, lefty = nonzerox[win_left_lane], nonzeroy[win_left_lane]
+#     rightx, righty = nonzerox[win_right_lane], nonzeroy[win_right_lane]
+
+#     #output[lefty, leftx] = [255, 0, 0]
+#     #output[righty, rightx] = [0, 0, 255]
+
+#     # Fit a second order polynomial to each
+#     left_fit = np.polyfit(left_weight_y, left_weight_x, 2)
+#     right_fit = np.polyfit(right_weight_y, right_weight_x, 2)
+
+#     # Generate x and y values for plotting
+#     ploty = np.linspace(0, b_img.shape[0] - 1, b_img.shape[0])
+
+#     # ax^2 + bx + c
+#     left_plotx = left_fit[0] * ploty ** 2 + left_fit[1] * ploty + left_fit[2]
+#     right_plotx = right_fit[0] * ploty ** 2 + \
+#         right_fit[1] * ploty + right_fit[2]
+
+#     left_line.prevx.append(left_plotx)
+#     right_line.prevx.append(right_plotx)
+
+#     # frame to frame smoothing
+#     if len(left_line.prevx) > 10:
+#         left_avg_line = smoothing(left_line.prevx, 10)
+#         left_avg_fit = np.polyfit(ploty, left_avg_line, 2)
+#         left_fit_plotx = left_avg_fit[0] * ploty ** 2 + \
+#             left_avg_fit[1] * ploty + left_avg_fit[2]
+#         left_line.current_fit = left_avg_fit
+#         left_line.allx, left_line.ally = left_fit_plotx, ploty
+#     else:
+#         left_line.current_fit = left_fit
+#         left_line.allx, left_line.ally = left_plotx, ploty
+
+#     if len(right_line.prevx) > 10:
+#         right_avg_line = smoothing(right_line.prevx, 10)
+#         right_avg_fit = np.polyfit(ploty, right_avg_line, 2)
+#         right_fit_plotx = right_avg_fit[0] * ploty ** 2 + \
+#             right_avg_fit[1] * ploty + right_avg_fit[2]
+#         right_line.current_fit = right_avg_fit
+#         right_line.allx, right_line.ally = right_fit_plotx, ploty
+#     else:
+#         right_line.current_fit = right_fit
+#         right_line.allx, right_line.ally = right_plotx, ploty
+
+#     left_line.startx, right_line.startx = left_line.allx[len(
+#         left_line.allx)-1], right_line.allx[len(right_line.allx)-1]
+#     left_line.endx, right_line.endx = left_line.allx[0], right_line.allx[0]
+
+#     left_line.detected, right_line.detected = True, True
+#     # print radius of curvature
+#     rad_of_curvature(left_line, right_line)
+#     return output
 
 def blind_search(b_img, left_line, right_line):
     """
@@ -328,16 +512,16 @@ def find_LR_lines(binary_img, left_line, right_line):
     previous window - after detecting lane lines in previous frame
     """
 
-    # if don't have lane lines info
+    # 라인정보가 없을 경우
     if left_line.detected == False:
         return blind_search(binary_img, left_line, right_line)
-    # if have lane lines info
+    # 라인 정보가 있을 경우
     else:
         return prev_window_refer(binary_img, left_line, right_line)
 
 
 def draw_lane(img, left_line, right_line, lane_color=(255, 0, 255), road_color=(80, 188, 223)):
-    """ draw lane lines & current driving space """
+    """ 선 그리기 & 현재 주행 가능한 공간 """
     window_img = np.zeros_like(img)
 
     window_margin = left_line.window_margin
@@ -368,7 +552,7 @@ def draw_lane(img, left_line, right_line, lane_color=(255, 0, 255), road_color=(
         [np.flipud(np.transpose(np.vstack([right_plotx-window_margin/5, ploty])))])
     pts = np.hstack((pts_left, pts_right))
 
-    # Draw the lane onto the warped blank image
+    # 주행 가능 영역 그리기
     cv2.fillPoly(window_img, np.int_([pts]), road_color)
     result = cv2.addWeighted(img, 1, window_img, 0.2, 0)
 
@@ -384,12 +568,12 @@ def road_info(left_line, right_line):
                  (right_line.endx - right_line.startx)) / 2
 
     if curvature > 2000 and abs(direction) < 100:
-        road_inf = 'No Curve'
+        road_inf = '직진'
         curvature = -1
     elif curvature <= 2000 and direction < - 50:
-        road_inf = 'Left Curve'
+        road_inf = '좌회전'
     elif curvature <= 2000 and direction > 50:
-        road_inf = 'Right Curve'
+        road_inf = '우회전'
     else:
         if left_line.road_inf != None:
             road_inf = left_line.road_inf
@@ -436,12 +620,15 @@ def print_road_status(img, left_line, right_line):
                 cv2.FONT_HERSHEY_SIMPLEX, 0.45, (33, 33, 33), 1)
     cv2.putText(img, deviate, (10, 63), cv2.FONT_HERSHEY_SIMPLEX,
                 0.45, (33, 33, 33), 1)
+    print(lane_inf, lane_curve, deviate)
+    # print(lane_curve)
+
 
     return img
 
 
 def print_road_map(image, left_line, right_line):
-    """ print simple road map """
+    """ 미니 맵 """
     img = cv2.imread('images/top_view_car.png', -1)
     img = cv2.resize(img, (120, 246))
 
