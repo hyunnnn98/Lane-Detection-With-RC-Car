@@ -11,7 +11,7 @@ FPS = 8
 left_line = Line()
 right_line = Line()
 
-cap = cv2.VideoCapture("curve1.mp4")
+cap = cv2.VideoCapture("strate.mp4")
 width, height = 1280, 720
 
 # 관심영역 설정 후 이미지
@@ -129,7 +129,8 @@ while (cap.isOpened()):
     ret, img = cap.read()
     current_time = time.time() - prev_time
 
-    if (ret is True) and (current_time > 0.7 / FPS):
+    # if (ret is True) and (current_time > 0.7 / FPS):
+    if (ret is True) :
         prev_time = time.time()
 
         # 이미지 리사이징

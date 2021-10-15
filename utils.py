@@ -3,6 +3,7 @@ import cv2
 from PIL import Image
 import matplotlib.image as mpimg
 
+
 class Line:
     def __init__(self):
         # 마지막 반복에서 라인이 감지되었습니까?
@@ -53,7 +54,6 @@ def rad_of_curvature(left_line, right_line):
     ym_per_pix = 22 / 720  # y 차원의 픽셀당 미터
     # meters per pixel in x dimension
     xm_per_pix = 3.7*(720/1280) / width_lanes
-
 
     # 곡률 반경을 원하는 y 값을 정의
     # 이미지 하단에 해당하는 최대 y값
@@ -290,12 +290,10 @@ def blind_search(b_img, left_line, right_line):
     start_leftX = np.argmax(histogram[:midpoint])
     start_rightX = np.argmax(histogram[midpoint:]) + midpoint
 
-
     # 슬라이딩 창 수 선택
     num_windows = 18
     # 창 높이 설정
     window_height = np.int(b_img.shape[0] / num_windows)
-
 
     # 이미지에서 0이 아닌 모든 픽셀의 x 및 y 위치 식별
     nonzero = b_img.nonzero()
@@ -305,7 +303,6 @@ def blind_search(b_img, left_line, right_line):
     # 각 창에 대해 업데이트될 현재 위치
     current_leftX = start_leftX
     current_rightX = start_rightX
-
 
     # 창을 중앙에 맞추기 위해 찾은 최소 픽셀 수 설정
     min_num_pixel = 100
@@ -351,14 +348,12 @@ def blind_search(b_img, left_line, right_line):
     win_left_lane = np.concatenate(win_left_lane)
     win_right_lane = np.concatenate(win_right_lane)
 
-
     # 왼쪽 및 오른쪽 라인 픽셀 위치 추출
     leftx, lefty = nonzerox[win_left_lane], nonzeroy[win_left_lane]
     rightx, righty = nonzerox[win_right_lane], nonzeroy[win_right_lane]
 
     output[lefty, leftx] = [255, 0, 0]
     output[righty, rightx] = [0, 0, 255]
-
 
     # 각각에 2차 다항식 맞추기
     left_fit = np.polyfit(lefty, leftx, 2)
@@ -587,13 +582,13 @@ def road_info(left_line, right_line):
 
     center_car = 720 / 2
     if center_lane > center_car:
-        deviation = 'Left ' + \
-            str(round(abs(center_lane - center_car)/(lane_width / 2)*100, 3)) + '%'
+        deviation = round(abs(center_lane - center_car) /
+                          (lane_width / 2)*100, 3)
     elif center_lane < center_car:
-        deviation = 'Right ' + \
-            str(round(abs(center_lane - center_car)/(lane_width / 2)*100, 3)) + '%'
+        deviation = round(abs(center_lane - center_car) /
+                          (lane_width / 2)*100, 3)
     else:
-        deviation = 'Center'
+        deviation = 50
     left_line.road_inf = road_inf
     left_line.curvature = curvature
     left_line.deviation = deviation
@@ -606,23 +601,25 @@ def print_road_status(img, left_line, right_line):
     road_inf, curvature, deviation = road_info(left_line, right_line)
     # cv2.putText(img, 'Road Status', (22, 30),
     #             cv2.FONT_HERSHEY_COMPLEX, 0.7, (80, 80, 80), 2)
+    curve_rate = None
 
-    lane_inf = 'Lane Info : ' + road_inf
-    if curvature == -1:
-        lane_curve = 'Curvature : Straight line'
-    else:
-        lane_curve = 'Curvature : {0:0.3f}m'.format(curvature)
-    deviate = 'Deviation : ' + deviation
+    if deviation > 50:
+        curve_rate = str(int(deviation - 50)) + '% '
+    elif deviation < 50:
+        curve_rate = str(int(50 - deviation)) + '% '
+    elif deviation == 0:
+        curve_rate = '직진'
+        road_inf = ''
 
-    cv2.putText(img, lane_inf, (10, 23), cv2.FONT_HERSHEY_SIMPLEX,
-                0.45, (33, 33, 33), 1)
-    cv2.putText(img, lane_curve, (10, 43),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.45, (33, 33, 33), 1)
-    cv2.putText(img, deviate, (10, 63), cv2.FONT_HERSHEY_SIMPLEX,
-                0.45, (33, 33, 33), 1)
-    print(lane_inf, lane_curve, deviate)
+    if road_inf == '직진':
+        curve_rate = ''
+
+    lane_inf = 'Servo 모터 : ' + curve_rate + road_inf
+
+    # curve_rate = 50 - deviation
+
+    print('Main 모터 : 직진 ', lane_inf)
     # print(lane_curve)
-
 
     return img
 
