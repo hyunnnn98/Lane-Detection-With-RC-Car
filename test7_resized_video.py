@@ -16,7 +16,7 @@ width, height = 640, 360
 
 # 관심영역 설정 후 이미지
 vertices = np.array([[
-    (30, 350), (130, 125), (610, 350), (475, 125)
+    (0, 350), (130, 55), (640, 350), (475, 55)
 ]], dtype=np.int32)
 
 
@@ -41,13 +41,14 @@ while (cap.isOpened()):
         lines = cv2.HoughLinesP(cropped_image, 2, np.pi/180,
                                 100, np.array([]), minLineLength=40, maxLineGap=5)
 
-        averaged_lines = average_slope_intercept(lane_img, lines)
+        averaged_lines = average_slope_intercept(cropped_image, lines)
         line_img = display_lines(color_interted_img, averaged_lines)
 
         # 좌우 라인 검출
         searching_img = find_LR_lines(cropped_image, left_line, right_line)
         w_comb_result, w_color_result = draw_lane(
             searching_img, left_line, right_line)
+        cv2.imshow("cropped_image", searching_img)
 
         # combo_img = cv2.addWeighted(color_interted_img, 0.6, line_img, 1, 1)
         combo_img = cv2.addWeighted(lane_img, 0.8, w_comb_result, 1, 1)

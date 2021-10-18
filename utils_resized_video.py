@@ -211,7 +211,7 @@ def blind_search(b_img, left_line, right_line):
     start_rightX = np.argmax(histogram[midpoint:]) + midpoint
 
     # 슬라이딩 창 수 선택
-    num_windows = 12
+    num_windows = 5
     # 창 높이 설정
     window_height = np.int(b_img.shape[0] / num_windows)
 
