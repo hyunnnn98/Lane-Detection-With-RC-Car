@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 from PIL import Image
-import matplotlib.image as mpimg
 
 #  BGR 제한 값 설정
 blue_threshold = 200

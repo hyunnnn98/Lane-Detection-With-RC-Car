@@ -1,7 +1,10 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+
 # import time
-from utils_resized_video import Line, color_invert, find_LR_lines, draw_lane, print_road_status, display_lines, average_slope_intercept, region_of_interest, canny, gaussian_blur
+from utils_resized_video import Line, color_invert, find_LR_lines, draw_lane, print_road_status, display_lines, average_slope_intercept, region_of_interest, canny, gaussian_blur, warp_image
 
 # 카메라 프레임 조정
 prev_time = 0
@@ -11,7 +14,7 @@ FPS = 8
 left_line = Line()
 right_line = Line()
 
-cap = cv2.VideoCapture("tracks/curve1.mp4")
+cap = cv2.VideoCapture("tracks/strate.mp4")
 width, height = 640, 360
 
 # 관심영역 설정 후 이미지
@@ -29,6 +32,31 @@ while (cap.isOpened()):
 
         # 색상 반전
         color_interted_img = color_invert(lane_img)
+
+        '''        
+        # 교실 환경전용 색상 반전
+        # color_interted_img = cv2.bitwise_not(color_interted_img)
+        '''
+
+        #######################################################
+        src = np.float32([[0, height], [603, height], [0, 0], [width, 0]])
+        dst = np.float32(
+            [[285, height], [355, height], [0, 0], [width, 0]])
+
+        # 행열 변환
+        M = cv2.getPerspectiveTransform(src, dst)  
+        # 역변환
+        Minv = cv2.getPerspectiveTransform(dst, src)
+ 
+        # ROI 이미지 영역(자르기)에 슬라이싱 적용
+        cropped_image = lane_img[225:(225+height), 0:width]
+        # 최종 이미지
+        brid_eye_view_img = cv2.warpPerspective(
+            img, M, (width, height))
+
+        cv2.imshow("brid_eye_view_img", brid_eye_view_img)
+        ########################################################
+
 
         #  이미지의 노이즈를 줄이기 위해 가우시안 효과 적용
         gaussian = gaussian_blur(color_interted_img, 5)
@@ -54,9 +82,10 @@ while (cap.isOpened()):
         combo_img = cv2.addWeighted(lane_img, 0.8, w_comb_result, 1, 1)
         result_img = print_road_status(combo_img, left_line, right_line)
 
-        # 결과 도출을 위한 리사이징
-        # resized_img = cv2.resize(result_img, (640, 360))
         cv2.imshow("Result", result_img)
+        # plt.imshow(result_img)
+        # plt.show()
+        # plt.close()
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
