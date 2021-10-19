@@ -14,7 +14,7 @@ FPS = 8
 left_line = Line()
 right_line = Line()
 
-cap = cv2.VideoCapture("tracks/strate.mp4")
+cap = cv2.VideoCapture("tracks/curve1.mp4")
 width, height = 640, 360
 
 # 관심영역 설정 후 이미지
@@ -38,32 +38,35 @@ while (cap.isOpened()):
         # color_interted_img = cv2.bitwise_not(color_interted_img)
         '''
 
-        #######################################################
-        src = np.float32([[0, height], [603, height], [0, 0], [width, 0]])
-        dst = np.float32(
-            [[285, height], [355, height], [0, 0], [width, 0]])
-
-        # 행열 변환
-        M = cv2.getPerspectiveTransform(src, dst)  
-        # 역변환
-        Minv = cv2.getPerspectiveTransform(dst, src)
- 
-        # ROI 이미지 영역(자르기)에 슬라이싱 적용
-        cropped_image = lane_img[225:(225+height), 0:width]
-        # 최종 이미지
-        brid_eye_view_img = cv2.warpPerspective(
-            img, M, (width, height))
-
-        cv2.imshow("brid_eye_view_img", brid_eye_view_img)
-        ########################################################
-
-
         #  이미지의 노이즈를 줄이기 위해 가우시안 효과 적용
         gaussian = gaussian_blur(color_interted_img, 5)
 
         # 캐니 & 관심영역 적용
         canny_img = canny(gaussian, 40, 120)
         cropped_image = region_of_interest(canny_img, vertices)
+        cv2.imshow("region_of_interest", cropped_image)
+
+        #######################################################
+        src = np.float32([[0, height], [width, height], [0, 0], [width, 0]])
+
+        # 좌하, 우하, 좌상, 우상
+        dst = np.float32(
+            [[285, height], [390, height], [0, 0], [width, 0]])
+        # 해당 점의 네 쌍에서 원근 변환을 계산
+        transforted_M = cv2.getPerspectiveTransform(src, dst)  
+
+
+        # 역변환 ( 원본 이미지 출력을 위해...! )
+        original_M = cv2.getPerspectiveTransform(dst, src)
+ 
+        # ROI 이미지 영역(자르기)에 슬라이싱 적용
+        bird_cropped_image = canny_img[225:(225+height), 0:width]
+        # 최종 이미지
+        brid_eye_view_img = cv2.warpPerspective(
+            bird_cropped_image, transforted_M, (width, height))
+
+        cv2.imshow("brid_eye_view_img", brid_eye_view_img)
+        ########################################################
 
         # 라인 보정
         lines = cv2.HoughLinesP(cropped_image, 2, np.pi/180,
