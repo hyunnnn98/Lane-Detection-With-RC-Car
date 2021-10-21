@@ -4,14 +4,14 @@ from PIL import Image
 
 # 라인 굵기
 line_thick = 5
-window_number = 10
+window_number = 5
 
 class Line:
     def __init__(self):
         # 마지막 반복에서 라인이 감지되었습니까?
         self.detected = False
         # Set the width of the windows +/- margin
-        self.window_margin = 150
+        self.window_margin = 120
         # 마지막 n회 반복에 대한 적합선의 x 값
         self.prevx = []
         # 가장 최근 피팅에 대한 다항식 계수
@@ -120,7 +120,7 @@ def make_coordinates(img, line_type, line_parameters):  # 라인 범위 지정
         slope, intercept = 0.001, 0
     # print(img.shape)
     y1 = img.shape[0]
-    y2 = int(y1*(3/5))  # 이거 변경하면 라인이 따지는 길이가 변경됨
+    y2 = int(y1*(0.05))  # 이거 변경하면 라인이 따지는 길이가 변경됨
 
     x1 = int((y1 - intercept) / slope)
     x2 = int((y2 - intercept) / slope)
@@ -149,9 +149,9 @@ def rad_of_curvature(left_line, right_line):
     # Define conversions in x and y from pixels space to meters
     # 픽셀 공간에서 미터로의 x 및 y 변환 정의
     width_lanes = abs(right_line.startx - left_line.startx)
-    ym_per_pix = 22 / 360  # y 차원의 픽셀당 미터
+    ym_per_pix = 22 / 570  # y 차원의 픽셀당 미터
     # meters per pixel in x dimension
-    xm_per_pix = 3.7*(360/640) / width_lanes
+    xm_per_pix = 3.7*(570/640) / width_lanes
 
     # 곡률 반경을 원하는 y 값을 정의
     # 이미지 하단에 해당하는 최대 y값
@@ -175,7 +175,7 @@ def rad_of_curvature(left_line, right_line):
 def smoothing(lines, pre_lines=3):
     # 라인 수집 및 평균 라인 그리기
     lines = np.squeeze(lines)
-    avg_line = np.zeros((360))
+    avg_line = np.zeros((570))
 
     for ii, line in enumerate(reversed(lines)):
         if ii == pre_lines:
@@ -494,7 +494,7 @@ def road_info(left_line, right_line):
     center_lane = (right_line.startx + left_line.startx) / 2
     lane_width = right_line.startx - left_line.startx
 
-    center_car = 360 / 2
+    center_car = 570 / 2
     if center_lane > center_car:
         deviation = round(abs(center_lane - center_car) /
                           (lane_width / 2)*100, 3)
@@ -552,7 +552,7 @@ def print_road_map(image, left_line, right_line):
     lane_width = right_line.startx - left_line.startx
     lane_center = (right_line.startx + left_line.startx) / 2
     lane_offset = cols / 2 - (2*left_line.startx + lane_width) / 2
-    car_offset = int(lane_center - 360)
+    car_offset = int(lane_center - 570)
     # Generate a polygon to illustrate the search window area
     # And recast the x and y points into usable format for cv2.fillPoly()
     left_pts_l = np.array([np.transpose(np.vstack(

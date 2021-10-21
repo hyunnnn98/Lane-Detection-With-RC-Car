@@ -11,9 +11,9 @@ prev_time = 0
 FPS = 8
 
 # BGR 제한 값 설정
-blue_threshold = 50
-green_threshold = 150
-red_threshold = 6
+blue_threshold = 116
+green_threshold = 57
+red_threshold = 43
 bgr_threshold = [blue_threshold, green_threshold, red_threshold]
 
 # 라인 객체 생성
@@ -30,9 +30,9 @@ vertices = np.array([[
 
 
 cv2.namedWindow('Window')
-cv2.createTrackbar('BLUE', 'Window', 0, 255, onMouse)
-cv2.createTrackbar('GREEN', 'Window', 0, 255, onMouse)
-cv2.createTrackbar('RED', 'Window', 0, 255, onMouse)
+cv2.createTrackbar('BLUE', 'Window', blue_threshold, 255, onMouse)
+cv2.createTrackbar('GREEN', 'Window', green_threshold, 255, onMouse)
+cv2.createTrackbar('RED', 'Window', red_threshold, 255, onMouse)
 
 custom_blue = cv2.getTrackbarPos('BLUE', 'Window')
 custom_green = cv2.getTrackbarPos('GREEN', 'Window')
@@ -40,7 +40,7 @@ custom_red = cv2.getTrackbarPos('RED', 'Window')
 
 while (cap.isOpened()):
     ret, img = cap.read()
-    print(custom_red, custom_blue, custom_green)
+    # print(custom_red, custom_blue, custom_green)
 
     if (ret is True) :
     
@@ -50,7 +50,7 @@ while (cap.isOpened()):
         # 색상 반전
         color_interted_img = color_invert(lane_img, [custom_blue, custom_green, custom_red])
         cv2.imshow("lane_img", lane_img)
-        cv2.imshow("color_interted_img", color_interted_img)
+        # cv2.imshow("color_interted_img", coloqr_interted_img)
 
         '''        
         # 교실 환경전용 색상 반전
@@ -60,33 +60,29 @@ while (cap.isOpened()):
         # #  이미지의 노이즈를 줄이기 위해 가우시안 효과 적용
         # gaussian = gaussian_blur(color_interted_img, 5)
 
-        # # 캐니 & 관심영역 적용
-        # canny_img = canny(gaussian, 40, 120)
-        # cropped_image = region_of_interest(canny_img, vertices)
-        # # cv2.imshow("cropped_image", cropped_image)
+        # 캐니 & 관심영역 적용
+        canny_img = canny(color_interted_img, 40, 120)
+        # cv2.imshow("canny_img", canny_img)
+        cropped_image = region_of_interest(canny_img, vertices)
+        # cv2.imshow("cropped_image", cropped_image)
 
         # #######################################################
-        # img_src_area = np.float32([[0, height], [width, height], [0, 0], [width, 0]])
-
-        # # 좌하, 우하, 좌상, 우상
-        # roi_area = np.float32(
-        #     [[250, height], [450, height], [300, 50], [width-300, 50]])
-
-        # # 해당 점의 네 쌍에서 원근 변환을 계산
-        # transforted_M = cv2.getPerspectiveTransform(img_src_area, roi_area)
-
-        # # 역변환 ( 원본 이미지 출력을 위해...! )
-        # original_M = cv2.getPerspectiveTransform(roi_area, img_src_area)
- 
-        # # ROI 이미지 영역(자르기)에 슬라이싱 적용
-        # bird_roi_cropped_area = lane_img[35:(225+height), 0:width]
-        # # print(bird_cropped_rows, bird_cropped_cols)
-        # # 최종 이미지
-        # brid_eye_translated_img = cv2.warpPerspective(
-        #     bird_roi_cropped_area, transforted_M, (width, height))
-
-        # cv2.imshow("bird_roi_cropped_area", bird_roi_cropped_area)
-        # cv2.imshow("brid_eye_translated_img", brid_eye_translated_img)
+        # 좌하, 우하, 좌상, 우상
+        src = np.float32(
+            [[0, height-100], [width, height-100], [0, 120], [width, 120]])
+        # 좌하, 우하, 좌상, 우상
+        dst = np.float32(
+            [[200, height+300], [410, height+300], [0, 0], [width, 0]])
+        # 해당 점의 네 쌍에서 원근 변환을 계산
+        M = cv2.getPerspectiveTransform(src, dst)
+        # 역변환 ( 원본 이미지 출력을 위해...! )
+        Minv = cv2.getPerspectiveTransform(dst, src)
+        # ROI 이미지 영역(자르기)에 슬라이싱 적용
+        bird_cropped_image = canny_img[40:(225+height), 0:width]
+        # 최종 이미지 ( height 값 + -> 초기 라인 인식 범위 커짐 )
+        brid_eye_view_img = cv2.warpPerspective(
+            bird_cropped_image, M, (640, height+210))
+        # cv2.imshow("brid_eye_view_img", brid_eye_view_img)
         ########################################################
 
         # 라인 보정
@@ -97,19 +93,20 @@ while (cap.isOpened()):
         # line_img = display_lines(color_interted_img, averaged_lines)
         # cv2.imshow("bird_averaged_lines", line_img)
 
-        # # 라인보정 원본 소스
-        # lines = cv2.HoughLinesP(cropped_image, 2, np.pi/180,
-        #                         100, np.array([]), minLineLength=40, maxLineGap=5)
+        # 라인보정 원본 소스
+        # lines = cv2.HoughLinesP(brid_eye_view_img, 2, np.pi/180,
+        #                         250, np.array([]), minLineLength=70, maxLineGap=3)
 
-        # averaged_lines = average_slope_intercept(cropped_image, lines)
+        # averaged_lines = average_slope_intercept(bridq_eye_view_img, lines)
         # line_img = display_lines(color_interted_img, averaged_lines)
+        # print(brid_eye_view_img.shape[:2])
+        # cv2.imshow("searching_img", line_img)
 
-        # # # 좌우 라인 검출
-        # searching_img = find_LR_lines(
-        #     brid_eye_translated_img, left_line, right_line)
-        # w_comb_result, w_color_result = draw_lane(
-        #     searching_img, left_line, right_line)
-        # cv2.imshow("w_comb_result", w_comb_result)
+        # 좌우 라인 검출
+        searching_img = find_LR_lines(brid_eye_view_img, left_line, right_line)
+        w_comb_result, w_color_result = draw_lane(
+            searching_img, left_line, right_line)
+        # cv2.imshow("searching_img", w_comb_result)
 
         # Drawing the lines back down onto the road
         # color_result = cv2.warpPerspective(
@@ -123,8 +120,9 @@ while (cap.isOpened()):
 
         # combo_img = cv2.addWeighted(color_interted_img, 0.6, line_img, 1, 1)
         # combo_img = cv2.addWeighted(lane_img, 0.8, w_comb_result, 1, 1)
-        # result_img = print_road_status(combo_img, left_line, right_line)
-        # cv2.imshow("Result", result_img)
+        result_img = print_road_status(
+            w_comb_result, left_line, right_line)
+        cv2.imshow("Result", result_img)
 
         # plt.imshow(result_img)
         # plt.show()
@@ -136,6 +134,8 @@ while (cap.isOpened()):
         custom_blue = cv2.getTrackbarPos('BLUE', 'Window')
         custom_green = cv2.getTrackbarPos('GREEN', 'Window')
         custom_red = cv2.getTrackbarPos('RED', 'Window')
+
+        # cv2.waitKey(133)
 
 print("종료...")
 cap.release()
