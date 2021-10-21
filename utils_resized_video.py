@@ -2,12 +2,6 @@ import numpy as np
 import cv2
 from PIL import Image
 
-#  BGR 제한 값 설정
-blue_threshold = 50
-green_threshold = 150
-red_threshold = 6
-bgr_threshold = [blue_threshold, green_threshold, red_threshold]
-
 # 라인 굵기
 line_thick = 5
 window_number = 10
@@ -81,7 +75,7 @@ def mix_roi(left_roi, right_roi):   # 관심영역 레이어 마스크 설정
     return roi_masked_image
 
 
-def color_invert(img):  # 색 반전
+def color_invert(img, bgr_threshold):  # 색 반전
     inverted_image = np.copy(img)
     thresholds = (img[:, :, 1] < bgr_threshold[0]) \
         | (img[:, :, 1] < bgr_threshold[1]) \
@@ -596,3 +590,6 @@ def print_road_map(image, left_line, right_line):
     road_map = cv2.resize(road_map, (95, 95))
     road_map = cv2.cvtColor(road_map, cv2.COLOR_BGRA2BGR)
     return road_map
+
+def onMouse(x):
+    pass
