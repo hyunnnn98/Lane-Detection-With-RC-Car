@@ -3,20 +3,21 @@ import cv2
 from PIL import Image
 
 #  BGR 제한 값 설정
-blue_threshold = 200
-green_threshold = 200
-red_threshold = 210
+blue_threshold = 50
+green_threshold = 150
+red_threshold = 6
 bgr_threshold = [blue_threshold, green_threshold, red_threshold]
 
 # 라인 굵기
-line_thick = 2
+line_thick = 5
+window_number = 10
 
 class Line:
     def __init__(self):
         # 마지막 반복에서 라인이 감지되었습니까?
         self.detected = False
         # Set the width of the windows +/- margin
-        self.window_margin = 75
+        self.window_margin = 150
         # 마지막 n회 반복에 대한 적합선의 x 값
         self.prevx = []
         # 가장 최근 피팅에 대한 다항식 계수
@@ -98,9 +99,9 @@ def average_slope_intercept(image, lines):
     if lines is not None:
         for line in lines:
             x1, y1, x2, y2 = line.reshape(4)
+            # print(x1, y1, x2, y2)
 
             parameters = np.polyfit((x1, x2), (y1, y2), 1)
-
             slope = parameters[0]
             intercept = parameters[1]
             if slope < 0:
@@ -125,7 +126,7 @@ def make_coordinates(img, line_type, line_parameters):  # 라인 범위 지정
         slope, intercept = 0.001, 0
     # print(img.shape)
     y1 = img.shape[0]
-    y2 = int(y1*(2/5))  # 이거 변경하면 라인이 따지는 길이가 변경됨
+    y2 = int(y1*(3/5))  # 이거 변경하면 라인이 따지는 길이가 변경됨
 
     x1 = int((y1 - intercept) / slope)
     x2 = int((y2 - intercept) / slope)
@@ -210,7 +211,7 @@ def blind_search(b_img, left_line, right_line):
     start_rightX = np.argmax(histogram[midpoint:]) + midpoint
 
     # 슬라이딩 창 수 선택
-    num_windows = 5
+    num_windows = window_number
     # 창 높이 설정
     window_height = np.int(b_img.shape[0] / num_windows)
 
