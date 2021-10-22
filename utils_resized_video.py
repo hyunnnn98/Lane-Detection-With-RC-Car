@@ -4,14 +4,14 @@ from PIL import Image
 
 # 라인 굵기
 line_thick = 5
-window_number = 5
+window_number = 10
 
 class Line:
     def __init__(self):
         # 마지막 반복에서 라인이 감지되었습니까?
         self.detected = False
         # Set the width of the windows +/- margin
-        self.window_margin = 120
+        self.window_margin = 60
         # 마지막 n회 반복에 대한 적합선의 x 값
         self.prevx = []
         # 가장 최근 피팅에 대한 다항식 계수
@@ -580,7 +580,7 @@ def print_road_map(image, left_line, right_line):
     # Draw the lane onto the warped blank image
     cv2.fillPoly(window_img, np.int_([pts]), (0, 160, 0))
 
-    #window_img[10:133,300:360] = img
+    #window_img[10:133,300:570] = img
     road_map = Image.new('RGBA', image.shape[:2], (0, 0, 0, 0))
     window_img = Image.fromarray(window_img)
     img = Image.fromarray(img)
