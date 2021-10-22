@@ -4,9 +4,9 @@ from PIL import Image
 import matplotlib.image as mpimg
 
 #  BGR 제한 값 설정
-blue_threshold = 200
-green_threshold = 200
-red_threshold = 210
+blue_threshold = 116
+green_threshold = 57
+red_threshold = 43
 bgr_threshold = [blue_threshold, green_threshold, red_threshold]
 
 # 라인 굵기
@@ -126,7 +126,7 @@ def make_coordinates(img, line_type, line_parameters):  # 라인 범위 지정
         slope, intercept = 0.001, 0
     # print(img.shape)
     y1 = img.shape[0]
-    y2 = int(y1*(2/5))  # 이거 변경하면 라인이 따지는 길이가 변경됨
+    y2 = int(y1*(1/5))  # 이거 변경하면 라인이 따지는 길이가 변경됨
 
     x1 = int((y1 - intercept) / slope)
     x2 = int((y2 - intercept) / slope)
@@ -211,7 +211,7 @@ def blind_search(b_img, left_line, right_line):
     start_rightX = np.argmax(histogram[midpoint:]) + midpoint
 
     # 슬라이딩 창 수 선택
-    num_windows = 5
+    num_windows = 10
     # 창 높이 설정
     window_height = np.int(b_img.shape[0] / num_windows)
 
@@ -435,7 +435,7 @@ def find_LR_lines(binary_img, left_line, right_line):
         return prev_window_refer(binary_img, left_line, right_line)
 
 
-def draw_lane(img, left_line, right_line, lane_color=(255, 0, 255), road_color=(80, 188, 223)):
+def draw_lane(img, left_line, right_line, lane_color=(255, 0, 0), road_color=(0, 255, 0)):
     """ 선 그리기 & 현재 주행 가능한 공간 """
     window_img = np.zeros_like(img)
 
@@ -469,7 +469,7 @@ def draw_lane(img, left_line, right_line, lane_color=(255, 0, 255), road_color=(
 
     # 주행 가능 영역 그리기
     cv2.fillPoly(window_img, np.int_([pts]), road_color)
-    result = cv2.addWeighted(img, 1, window_img, 0.2, 0)
+    result = cv2.addWeighted(img, 1, window_img, 0.4, 0)
 
     return result, window_img
 

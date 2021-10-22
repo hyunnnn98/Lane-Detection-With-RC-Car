@@ -11,12 +11,12 @@ FPS = 8
 left_line = Line()
 right_line = Line()
 
-cap = cv2.VideoCapture("tracks/curve1.mp4")
+cap = cv2.VideoCapture("tracks/real_camera.mp4")
 width, height = 640, 360
 
 # 관심영역 설정 후 이미지
 vertices = np.array([[
-    (0, 350), (130, 55), (640, 350), (475, 55)
+    (0, 350), (130, 115), (640, 360), (475, 115)
 ]], dtype=np.int32)
 
 
@@ -34,15 +34,15 @@ while (cap.isOpened()):
         gaussian = gaussian_blur(color_interted_img, 5)
 
         # 캐니 & 관심영역 적용
-        canny_img = canny(gaussian, 40, 120)
+        canny_img = canny(gaussian, 50, 150)
         cropped_image = region_of_interest(canny_img, vertices)
 
         # 라인 보정
-        lines = cv2.HoughLinesP(cropped_image, 2, np.pi/180,
-                                100, np.array([]), minLineLength=40, maxLineGap=5)
+        # lines = cv2.HoughLinesP(cropped_image, 2, np.pi/180,
+        #                         100, np.array([]), minLineLength=40, maxLineGap=5)
 
-        averaged_lines = average_slope_intercept(cropped_image, lines)
-        line_img = display_lines(color_interted_img, averaged_lines)
+        # averaged_lines = average_slope_intercept(cropped_image, lines)
+        # line_img = display_lines(color_interted_img, averaged_lines)
 
         # 좌우 라인 검출
         searching_img = find_LR_lines(cropped_image, left_line, right_line)
@@ -57,6 +57,7 @@ while (cap.isOpened()):
         # 결과 도출을 위한 리사이징
         # resized_img = cv2.resize(result_img, (640, 360))
         cv2.imshow("Result", result_img)
+        cv2.waitKey(50)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
