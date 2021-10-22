@@ -10,14 +10,18 @@ red_threshold = 43
 bgr_threshold = [blue_threshold, green_threshold, red_threshold]
 
 # 라인 굵기
-line_thick = 2
+line_thick = 5
+window_number = 10
+
+# 슬라이딩 창 수 선택
+num_windows = 10
 
 class Line:
     def __init__(self):
         # 마지막 반복에서 라인이 감지되었습니까?
         self.detected = False
         # Set the width of the windows +/- margin
-        self.window_margin = 75
+        self.window_margin = 60
         # 마지막 n회 반복에 대한 적합선의 x 값
         self.prevx = []
         # 가장 최근 피팅에 대한 다항식 계수
@@ -81,7 +85,7 @@ def mix_roi(left_roi, right_roi):   # 관심영역 레이어 마스크 설정
     return roi_masked_image
 
 
-def color_invert(img):  # 색 반전
+def color_invert(img, bgr_threshold):  # 색 반전
     inverted_image = np.copy(img)
     thresholds = (img[:, :, 1] < bgr_threshold[0]) \
         | (img[:, :, 1] < bgr_threshold[1]) \
@@ -99,9 +103,9 @@ def average_slope_intercept(image, lines):
     if lines is not None:
         for line in lines:
             x1, y1, x2, y2 = line.reshape(4)
+            # print(x1, y1, x2, y2)
 
             parameters = np.polyfit((x1, x2), (y1, y2), 1)
-
             slope = parameters[0]
             intercept = parameters[1]
             if slope < 0:
@@ -155,9 +159,9 @@ def rad_of_curvature(left_line, right_line):
     # Define conversions in x and y from pixels space to meters
     # 픽셀 공간에서 미터로의 x 및 y 변환 정의
     width_lanes = abs(right_line.startx - left_line.startx)
-    ym_per_pix = 22 / 360  # y 차원의 픽셀당 미터
+    ym_per_pix = 22 / 570  # y 차원의 픽셀당 미터
     # meters per pixel in x dimension
-    xm_per_pix = 3.7*(360/640) / width_lanes
+    xm_per_pix = 3.7*(570/640) / width_lanes
 
     # 곡률 반경을 원하는 y 값을 정의
     # 이미지 하단에 해당하는 최대 y값
@@ -181,7 +185,7 @@ def rad_of_curvature(left_line, right_line):
 def smoothing(lines, pre_lines=3):
     # 라인 수집 및 평균 라인 그리기
     lines = np.squeeze(lines)
-    avg_line = np.zeros((360))
+    avg_line = np.zeros((570))
 
     for ii, line in enumerate(reversed(lines)):
         if ii == pre_lines:
@@ -210,8 +214,6 @@ def blind_search(b_img, left_line, right_line):
     start_leftX = np.argmax(histogram[:midpoint])
     start_rightX = np.argmax(histogram[midpoint:]) + midpoint
 
-    # 슬라이딩 창 수 선택
-    num_windows = 10
     # 창 높이 설정
     window_height = np.int(b_img.shape[0] / num_windows)
 
@@ -500,7 +502,7 @@ def road_info(left_line, right_line):
     center_lane = (right_line.startx + left_line.startx) / 2
     lane_width = right_line.startx - left_line.startx
 
-    center_car = 360 / 2
+    center_car = 570 / 2
     if center_lane > center_car:
         deviation = round(abs(center_lane - center_car) /
                           (lane_width / 2)*100, 3)
@@ -558,7 +560,7 @@ def print_road_map(image, left_line, right_line):
     lane_width = right_line.startx - left_line.startx
     lane_center = (right_line.startx + left_line.startx) / 2
     lane_offset = cols / 2 - (2*left_line.startx + lane_width) / 2
-    car_offset = int(lane_center - 360)
+    car_offset = int(lane_center - 570)
     # Generate a polygon to illustrate the search window area
     # And recast the x and y points into usable format for cv2.fillPoly()
     left_pts_l = np.array([np.transpose(np.vstack(
@@ -586,7 +588,7 @@ def print_road_map(image, left_line, right_line):
     # Draw the lane onto the warped blank image
     cv2.fillPoly(window_img, np.int_([pts]), (0, 160, 0))
 
-    #window_img[10:133,300:360] = img
+    #window_img[10:133,300:570] = img
     road_map = Image.new('RGBA', image.shape[:2], (0, 0, 0, 0))
     window_img = Image.fromarray(window_img)
     img = Image.fromarray(img)
@@ -596,3 +598,6 @@ def print_road_map(image, left_line, right_line):
     road_map = cv2.resize(road_map, (95, 95))
     road_map = cv2.cvtColor(road_map, cv2.COLOR_BGRA2BGR)
     return road_map
+
+def onMouse(x):
+    pass
