@@ -10,6 +10,12 @@ from utils_resized_video import Line, color_invert, find_LR_lines, draw_lane, pr
 prev_time = 0
 FPS = 8
 
+# BGR 제한 값 설정
+blue_threshold = 116
+green_threshold = 57
+red_threshold = 43
+bgr_threshold = [blue_threshold, green_threshold, red_threshold]
+
 # 라인 객체 생성
 left_line = Line()
 right_line = Line()
@@ -39,7 +45,7 @@ while (cap.isOpened()):
         lane_img = cv2.resize(img, (width, height))
         # 색상 반전
         # color_interted_img = grayscale(lane_img)
-        color_interted_img = color_invert(lane_img)
+        color_interted_img = color_invert(lane_img, bgr_threshold)
         '''        
         # 교실 환경전용 색상 반전
         # color_interted_img = cv2.bitwise_not(color_interted_img)
@@ -69,28 +75,29 @@ while (cap.isOpened()):
         # 최종 이미지 ( height 값 + -> 초기 라인 인식 범위 커짐 )
         brid_eye_view_img = cv2.warpPerspective(
             bird_cropped_image, M, (640, height+210))
-        # cv2.imshow("brid_eye_view_img", brid_eye_view_img)
+        cv2.imshow("brid_eye_view_img", brid_eye_view_img)
 
         # 원본 이미지 세트   
         bird_temp_image = lane_img[40:(225+height), 0:width]
         brid_eye_original_img = cv2.warpPerspective(
             bird_temp_image, M, (640, height+210))
+        cv2.imshow("brid_eye_original_img", brid_eye_original_img)
         ########################################################
-        # 라인 보정
-        temp_resized_img1 = np.copy(brid_eye_view_img)
-        temp_resized_img2 = np.copy(brid_eye_original_img)
-        temp_height, temp_weight = temp_resized_img1.shape[:2]
-        # print(temp_w,temp_h)
-        temp_resized_img1 = cv2.resize(
-            temp_resized_img1, (int(temp_height/3), int(temp_weight/3)))
-        cv2.imshow("1", temp_resized_img1)
-        temp_resized_img2 = cv2.resize(
-            temp_resized_img2, (int(temp_height/3), int(temp_weight/3)))
-        cv2.imshow("2", temp_resized_img2)
+        # # 라인 보정
+        # temp_resized_img1 = np.copy(brid_eye_view_img)
+        # temp_resized_img2 = np.copy(brid_eye_original_img)
+        # temp_height, temp_weight = temp_resized_img1.shape[:2]
+        # # print(temp_w,temp_h)
+        # temp_resized_img1 = cv2.resize(
+        #     temp_resized_img1, (int(temp_height/3), int(temp_weight/3)))
+        # cv2.imshow("1", temp_resized_img1)
+        # temp_resized_img2 = cv2.resize(
+        #     temp_resized_img2, (int(temp_height/3), int(temp_weight/3)))
+        # cv2.imshow("2", temp_resized_img2)
 
 
-        lines = cv2.HoughLinesP(temp_resized_img2, 2, np.pi/180,
-                                100, np.array([]), minLineLength=3, maxLineGap=3)
+        # lines = cv2.HoughLinesP(temp_resized_img2, 2, np.pi/180,
+        #                         100, np.array([]), minLineLength=3, maxLineGap=3)
 
         # left_fit = []
         # right_fit = []
@@ -114,9 +121,9 @@ while (cap.isOpened()):
 
         # cv2.imshow("brid_eye_original_img", temp_resized_img2)
 
-        averaged_lines = average_slope_intercept(temp_resized_img1, lines)
-        line_img = display_lines(temp_resized_img1, averaged_lines)
-        cv2.imshow("123", line_img)
+        # averaged_lines = average_slope_intercept(temp_resized_img1, lines)
+        # line_img = display_lines(temp_resized_img1, averaged_lines)
+        # cv2.imshow("123", line_img)
 
         # # 좌우 라인 검출
         # searching_img = find_LR_lines(averaged_lines, left_line, right_line)

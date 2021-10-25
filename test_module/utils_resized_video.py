@@ -4,10 +4,10 @@ from PIL import Image
 import matplotlib.image as mpimg
 
 #  BGR 제한 값 설정
-blue_threshold = 116
-green_threshold = 57
-red_threshold = 43
-bgr_threshold = [blue_threshold, green_threshold, red_threshold]
+# blue_threshold = 116
+# green_threshold = 57
+# red_threshold = 43
+# bgr_threshold = [blue_threshold, green_threshold, red_threshold]
 
 # 라인 굵기
 line_thick = 5
