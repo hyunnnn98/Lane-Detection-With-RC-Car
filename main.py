@@ -10,10 +10,14 @@
 
 # IMPORT NECESSARY LIBRARIES
 import cv2
+import serial
+import time
 
 from utils_video import gstreamerPipeline, readVideo, processImage, perspectiveWarp, plotHistogram
 from utils_steering import steeringAngle, steeringText
 from utils_lane_deceting import slide_window_search, general_search, measure_lane_curvature, draw_lane_lines, offCenter, addText
+from utils_arduino import sendToArduino
+
 
 ################################################################################
 ######## START - MAIN FUNCTION #################################################
@@ -23,6 +27,13 @@ detection_err_count = 0
 
 # 🍒 Read the input image
 image = readVideo()
+
+# 🍒 Read the arduino signal
+try:
+    servo = serial.Serial('COM12', 9600, timeout=1)
+    time.sleep(1)
+except:
+    print("Error timeout arduino...")
 
 ################################################################################
 #### START - LOOP TO PLAY THE INPUT IMAGE ######################################
@@ -69,6 +80,8 @@ while True:
         # 🐸 차선 정보 추가
         finalImg, steeringWheelRadius = addText(
             result, curveRad, curveDir, deviation, directionDev)
+
+        sendToArduino(servo, steeringWheelRadius)
 
         # 🐸 조향각 정보 Steering_GUI
         strDst, strDegrees = steeringAngle(steeringWheelRadius)
