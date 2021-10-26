@@ -28,7 +28,7 @@ def slide_window_search(binary_warped, histogram):
 
     # 총 12개의 창을 사용하여 알고리즘 계산
     # ( default 윈도우 9, 마진 120, 최소값 50 )
-    nwindows = 6
+    nwindows = 8
     window_height = np.int32(binary_warped.shape[0] / nwindows)
     nonzero = binary_warped.nonzero()
     nonzeroy = np.array(nonzero[0])
@@ -36,7 +36,7 @@ def slide_window_search(binary_warped, histogram):
     leftx_current = leftx_base
     rightx_current = rightx_base
     margin = 120
-    minpix = 30
+    minpix = 40
     left_lane_inds = []
     right_lane_inds = []
 

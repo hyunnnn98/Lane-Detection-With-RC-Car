@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt, cm, colors
 # 현재 작업 디렉토리의 경로 가져오기
 CWD_PATH = os.getcwd()
 
-test_video = 'tracks/real_camera.mp4'
+test_video = 'tracks/real_camera_2_fast.mp4'
 
 ################################################################################
 #### START - FUNCTION TO READ AN RSP CAMERA VIDEO #############################
@@ -67,7 +67,7 @@ def processImage(inpImage):
     # ( 흰색 영역 HSL 필터 )
     hls = cv2.cvtColor(inpImage, cv2.COLOR_BGR2HLS)
 
-    lower_white = np.array([0, 60, 10])         # default = 0, 130, 10
+    lower_white = np.array([0, 30, 10])         # default = 0, 130, 10
     upper_white = np.array([255, 255, 255])     # default = 255, 255, 255
     mask = cv2.inRange(inpImage, lower_white, upper_white)
     hls_result = cv2.bitwise_and(inpImage, inpImage, mask=mask)
@@ -102,10 +102,10 @@ def perspectiveWarp(inpImage):
     # Perspective points to be warped
     # 왜곡될 관점 포인트 <좌하, 우하, 좌상, 우상>
     # 🐸 ( Type 1 )
-    src = np.float32([[0, height-150],
-                      [width, height-150],
-                      [200, 300],
-                      [width-200, 300]])
+    # src = np.float32([[0, height-150],
+    #                   [width, height-150],
+    #                   [200, 300],
+    #                   [width-200, 300]])
 
     # 🐸 ( Type 2 기본값 )
     # src = np.float32([[200, height-200],
@@ -119,6 +119,12 @@ def perspectiveWarp(inpImage):
     #                   [width, height-150],
     #                   [400, 150],
     #                   [width-400, 150]])
+
+    # 🐸 ( real_camera_2 Type 1 넓은 시야 )
+    src = np.float32([[0, 620],
+                      [width-90, 620],
+                      [200, 400],
+                      [935, 400]])
 
     # Window to be shown
     # 표시할 윈도우
@@ -148,7 +154,7 @@ def perspectiveWarp(inpImage):
     # Display birdseye view image
     # Birdseye 뷰이미지 표시
 
-    # cv2.imshow("Birdseye", birdseye)
+    cv2.imshow("Birdseye", birdseye)
     # cv2.imshow("Birdseye Left", birdseyeLeft)
     # cv2.imshow("Birdseye Right", birdseyeRight)
 
