@@ -7,14 +7,17 @@
 import cv2
 import numpy as np
 import os
+from matplotlib import pyplot as plt, cm, colors
 
 # Get path to the current working directory
 # 현재 작업 디렉토리의 경로 가져오기
 CWD_PATH = os.getcwd()
 
-test_video = 'real_camera.mp4'
+test_video = 'tracks/real_camera.mp4'
 
-def gstreamer_pipeline(
+################################################################################
+#### START - FUNCTION TO READ AN RSP CAMERA VIDEO #############################
+def gstreamerPipeline(
     capture_width=1280,
     capture_height=720,
     display_width=1280,
@@ -40,6 +43,8 @@ def gstreamer_pipeline(
             display_height,
         )
     )
+#### END - FUNCTION TO READ AN RSP CAMERA VIDEO ################################
+################################################################################
 
 
 ################################################################################
@@ -81,7 +86,7 @@ def processImage(inpImage):
     # cv2.imshow("Blurred", blur)
     # cv2.imshow("Canny Edges", canny)
 
-    return image, hls_result, gray, thresh, blur, canny
+    return hls_result, gray, thresh, blur, canny
 #### END - FUNCTION TO PROCESS IMAGE ###########################################
 ################################################################################
 
@@ -149,4 +154,24 @@ def perspectiveWarp(inpImage):
 
     return birdseye, birdseyeLeft, birdseyeRight, minv
 #### END - FUNCTION TO APPLY PERSPECTIVE WARP ##################################
+################################################################################
+
+
+################################################################################
+#### START - 왜곡된 이미지의 히스토그램을 플롯하는 기능 ########################
+def plotHistogram(inpImage):
+
+    histogram = np.sum(inpImage[inpImage.shape[0] // 2:, :], axis=0)
+
+    midpoint = np.int32(histogram.shape[0] / 2)
+    leftxBase = np.argmax(histogram[:midpoint])
+    rightxBase = np.argmax(histogram[midpoint:]) + midpoint
+
+    plt.xlabel("Image X Coordinates")
+    plt.ylabel("Number of White Pixels")
+
+    # 픽셀 단위의 계산식에 필요한
+    # ( 왼쪽, 오른쪽 차선의 히스토그램 ) 및 ( x 좌표 ) 반환
+    return histogram, leftxBase, rightxBase
+#### END - FUNCTION TO PLOT THE HISTOGRAM OF WARPED IMAGE ######################
 ################################################################################
