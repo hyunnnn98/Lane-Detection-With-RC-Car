@@ -295,9 +295,11 @@ def addText(img, radius, direction, deviation, devDirection):
         direction = '직진 코스'
     elif direction == 'Left Curve':
         direction = '좌회전 코스'
-        steeringWheelRadius = steeringWheelRadius * -1
     elif direction == 'Right Curve':
         direction = '우회전 코스'
+    
+    if devDirection == 'left':
+        steeringWheelRadius = steeringWheelRadius * -1
 
     print('🐸 방향:', direction, ', 🎃 서브 모터:', devDirection)
 

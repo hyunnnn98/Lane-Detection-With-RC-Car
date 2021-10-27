@@ -123,7 +123,7 @@ def perspectiveWarp(inpImage):
     # 🐸 ( real_camera_2 Type 1 넓은 시야 )
     src = np.float32([[0, 620],
                       [width-90, 620],
-                      [200, 400],
+                      [170, 400],
                       [935, 400]])
 
     # Window to be shown

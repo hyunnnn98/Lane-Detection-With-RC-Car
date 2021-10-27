@@ -13,10 +13,12 @@ import cv2
 import serial
 import time
 
+# IMPORT NECESSARY UTILS
 from utils_video import gstreamerPipeline, readVideo, processImage, perspectiveWarp, plotHistogram
 from utils_steering import steeringAngle, steeringText
 from utils_lane_deceting import slide_window_search, general_search, measure_lane_curvature, draw_lane_lines, offCenter, addText
 from utils_arduino import sendToArduino
+from utils_calibration import calib, undistort
 
 
 ################################################################################
@@ -27,6 +29,9 @@ detection_err_count = 0
 
 # 🍒 Read the input image
 image = readVideo()
+
+# 🍒 camera matrix & distortion coefficient
+mtx, dist = calib()
 
 # 🍒 Read the arduino signal
 try:
@@ -41,6 +46,9 @@ while True:
 
     _, frame = image.read()
     try:
+        # 🐸 camera calibration 적용하기
+        frame = undistort(frame, mtx, dist)
+
         # 🐸 birdView 적용하기
         # 1. "perspectiveWarp()" 함수를 호출하여 원근 변형 적용
         #       -> (birdView)라는 변수에 할당
@@ -81,11 +89,12 @@ while True:
         finalImg, steeringWheelRadius = addText(
             result, curveRad, curveDir, deviation, directionDev)
 
-        sendToArduino(servo, steeringWheelRadius)
-
         # 🐸 조향각 정보 Steering_GUI
         strDst, strDegrees = steeringAngle(steeringWheelRadius)
         steer = steeringText(strDst, strDegrees)
+
+        # 🐸 아두이노 서보 모터로 데이터 전송
+        # sendToArduino(servo, strDegrees)
 
         # 🐸 최종 이미지 출력
         cv2.imshow("steering wheel", steer)
