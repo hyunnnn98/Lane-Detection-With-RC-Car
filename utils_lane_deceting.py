@@ -28,7 +28,7 @@ def slide_window_search(binary_warped, histogram):
 
     # 총 12개의 창을 사용하여 알고리즘 계산
     # ( default 윈도우 9, 마진 120, 최소값 50 )
-    nwindows = 8
+    nwindows = 9
     window_height = np.int32(binary_warped.shape[0] / nwindows)
     nonzero = binary_warped.nonzero()
     nonzeroy = np.array(nonzero[0])
@@ -158,7 +158,7 @@ def general_search(binary_warped, left_fit, right_fit):
 
     # 결과 도출
     # general_search_result = cv2.addWeighted(out_img, 1, window_img, 0.3, 0)
-    # cv2.imshow('general_search_result', general_search_result)
+    # cv2.imshow('general_search_result', out_img)
     # plt.imshow(general_search_result)
 
     plt.plot(left_fitx,  ploty, color='yellow')
@@ -239,7 +239,7 @@ def draw_lane_lines(original_image, warped_image, Minv, draw_info):
 
     cv2.fillPoly(color_warp, np.int_([pts]), (150, 130, 0))       # 주행 라인
     cv2.fillPoly(color_warp, np.int_([pts_mean]), (0, 255, 255))  # 중심 축
-
+    # print('중심축 : ', pts_mean)
     newwarp = cv2.warpPerspective(
         color_warp, Minv, (original_image.shape[1], original_image.shape[0]))
     result = cv2.addWeighted(original_image, 1, newwarp, 0.5, 0)
@@ -294,14 +294,14 @@ def addText(img, radius, direction, deviation, devDirection):
     if direction == 'Straight':
         direction = '직진 코스'
     elif direction == 'Left Curve':
-        direction = '좌회전 코스'
-    elif direction == 'Right Curve':
         direction = '우회전 코스'
+    elif direction == 'Right Curve':
+        direction = '좌회전 코스'
     
     if devDirection == 'left':
         steeringWheelRadius = steeringWheelRadius * -1
 
-    print('🐸 방향:', direction, ', 🎃 서브 모터:', devDirection)
+    # print('🐸 방향:', direction, ', 🎃 서브 모터:', devDirection)
 
     return img, steeringWheelRadius
 #### END - 최종 이미지에 주행 정보 텍스트를 추가하는 기능 ######################

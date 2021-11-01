@@ -13,10 +13,12 @@ from matplotlib import pyplot as plt, cm, colors
 # 현재 작업 디렉토리의 경로 가져오기
 CWD_PATH = os.getcwd()
 
-test_video = 'tracks/real_camera_2.mp4'
+test_video = 'tracks/real_camera_3.mp4'
 
 ################################################################################
 #### START - FUNCTION TO READ AN RSP CAMERA VIDEO #############################
+
+
 def gstreamerPipeline(
     capture_width=1280,
     capture_height=720,
@@ -61,22 +63,29 @@ def readVideo():
 
 ################################################################################
 #### START - FUNCTION TO PROCESS IMAGE #########################################
-def processImage(inpImage):
+def processImage(inpImage, custom_green, custon_red, custom_white, custom_white_row, custom_thresh):
+    # 그림자 영역 제거
+    green_threshold = custom_green
+    thresholds = (inpImage[:, :, 1] < green_threshold) | (
+        inpImage[:, :, 2] < custon_red)
+    inpImage[thresholds] = [0, 0, 0]
 
     # Apply HLS color filtering to filter out white lane lines
     # ( 흰색 영역 HSL 필터 )
     hls = cv2.cvtColor(inpImage, cv2.COLOR_BGR2HLS)
 
-    lower_white = np.array([0, 30, 10])         # default = 0, 130, 10
+    # default = 0, 130, 10
+    lower_white = np.array([0, custom_white, custom_white_row])
     upper_white = np.array([255, 255, 255])     # default = 255, 255, 255
     mask = cv2.inRange(inpImage, lower_white, upper_white)
     hls_result = cv2.bitwise_and(inpImage, inpImage, mask=mask)
 
     # Convert image to grayscale, apply threshold, blur & extract edges
     gray = cv2.cvtColor(hls_result, cv2.COLOR_BGR2GRAY)
-    ret, thresh = cv2.threshold(gray, 160, 255, cv2.THRESH_BINARY)
+    ret, thresh = cv2.threshold(
+        gray, custom_thresh, 255, cv2.THRESH_BINARY)      # default = 160, 255 ( 🍒 흰 or 검... 범위 설정)
     blur = cv2.GaussianBlur(thresh, (3, 3), 0)
-    canny = cv2.Canny(blur, 40, 120)            # default = 40, 60
+    canny = cv2.Canny(blur, 40, 60)             # default = 40, 60
 
     # Display the processed images
     # cv2.imshow("Image", inpImage)
@@ -84,7 +93,7 @@ def processImage(inpImage):
     # cv2.imshow("Grayscale", gray)
     # cv2.imshow("Thresholded", thresh)
     # cv2.imshow("Blurred", blur)
-    # cv2.imshow("Canny Edges", canny)
+    cv2.imshow("Canny Edges", canny)
 
     return hls_result, gray, thresh, blur, canny
 #### END - FUNCTION TO PROCESS IMAGE ###########################################
@@ -123,8 +132,8 @@ def perspectiveWarp(inpImage):
     # 🐸 ( real_camera_2 Type 1 넓은 시야 )
     src = np.float32([[0, 620],
                       [width-90, 620],
-                      [170, 400],
-                      [935, 400]])
+                      [170, 370],
+                      [955, 370]])
 
     # Window to be shown
     # 표시할 윈도우
