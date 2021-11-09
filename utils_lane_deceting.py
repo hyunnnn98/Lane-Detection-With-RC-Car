@@ -35,8 +35,8 @@ def slide_window_search(binary_warped, histogram):
     nonzerox = np.array(nonzero[1])
     leftx_current = leftx_base
     rightx_current = rightx_base
-    margin = 120
-    minpix = 40
+    margin = 60
+    minpix = 130
     left_lane_inds = []
     right_lane_inds = []
 
@@ -97,7 +97,7 @@ def slide_window_search(binary_warped, histogram):
     out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
 
     # plt.imshow(out_img)
-    # cv2.imshow('sliding_window', out_img)
+    cv2.imshow('sliding_window', out_img)
 
     plt.plot(left_fitx,  ploty, color='yellow')
     plt.plot(right_fitx, ploty, color='yellow')
@@ -219,6 +219,8 @@ def measure_lane_curvature(ploty, leftx, rightx):
 ################################################################################
 #### START - 감지된 차선 영역을 시각적으로 보여주는 기능 #######################
 def draw_lane_lines(original_image, warped_image, Minv, draw_info):
+    img_x = original_image.shape[1]
+    img_y = original_image.shape[0]
 
     leftx = draw_info['leftx']
     rightx = draw_info['rightx']
@@ -241,7 +243,7 @@ def draw_lane_lines(original_image, warped_image, Minv, draw_info):
     cv2.fillPoly(color_warp, np.int_([pts_mean]), (0, 255, 255))  # 중심 축
     # print('중심축 : ', pts_mean)
     newwarp = cv2.warpPerspective(
-        color_warp, Minv, (original_image.shape[1], original_image.shape[0]))
+        color_warp, Minv, (img_x, img_y))
     result = cv2.addWeighted(original_image, 1, newwarp, 0.5, 0)
 
     return pts_mean, result
