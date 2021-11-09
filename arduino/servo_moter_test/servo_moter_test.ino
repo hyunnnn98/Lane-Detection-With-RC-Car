@@ -19,31 +19,44 @@ void loop() {
     input_data = Serial.read();
   }
 
-  if(input_data == '1')
+  // 직진
+  if(input_data == '0')
   {
-    moveAngle(10);
+    moveAngle(90);
   }
-  else if(input_data == '2')
+  // 우회전
+  else if(input_data == '1')
   {
-    moveAngle(20);
+    moveAngle(95);
+  } else if (input_data == '2')
+  {
+    moveAngle(100);
   } else if (input_data == '3')
   {
-    moveAngle(30);
+    moveAngle(105);
   } else if (input_data == '4')
   {
-    moveAngle(40);
+    moveAngle(110);
   } else if (input_data == '5')
   {
-    moveAngle(50);
-  } else if (input_data == '6')
+    moveAngle(115);
+  } 
+  // 좌회전
+  else if (input_data == '-1')
   {
-    moveAngle(60);
-  } else if (input_data == '7')
-  {
-    moveAngle(70);
-  } else if (input_data == '8')
+    moveAngle(85);
+  } else if (input_data == '-2')
   {
     moveAngle(80);
+  } else if (input_data == '-3')
+  {
+    moveAngle(75);
+  } else if (input_data == '-4')
+  {
+    moveAngle(70);
+  } else if (input_data == '-5')
+  {
+    moveAngle(65);
   }
 }
 

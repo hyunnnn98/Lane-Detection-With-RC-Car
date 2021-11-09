@@ -15,10 +15,10 @@ def steeringAngle(degrees):
 
     global smoothed_angle
 
-    if degrees > 35:
-        degrees = 35
-    elif degrees < -35:
-        degrees = -35
+    if degrees > 25:
+        degrees = 25
+    elif degrees < -25:
+        degrees = -25
 
     smoothed_angle += 0.2 * pow(abs((degrees - smoothed_angle)), 2.0 / 3.0) * (
         degrees - smoothed_angle) / abs(degrees - smoothed_angle)
@@ -26,9 +26,9 @@ def steeringAngle(degrees):
     M = cv2.getRotationMatrix2D(
         (swheelCols/2, swheelRows/2), -smoothed_angle, 1)
     dst = cv2.warpAffine(swheel, M, (swheelCols, swheelRows))
-    degrees = round(smoothed_angle)
+    strDegrees = round(smoothed_angle)
 
-    return dst, degrees
+    return dst, strDegrees
 
 
 def steeringText(img, angle):

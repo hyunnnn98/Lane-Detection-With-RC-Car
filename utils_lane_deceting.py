@@ -301,7 +301,7 @@ def addText(img, radius, direction, deviation, devDirection):
     if devDirection == 'left':
         steeringWheelRadius = steeringWheelRadius * -1
 
-    # print('🐸 방향:', direction, ', 🎃 서브 모터:', devDirection)
+    print('🐸 방향:', direction, ', 🎃 서브 모터:', devDirection)
 
     return img, steeringWheelRadius
 #### END - 최종 이미지에 주행 정보 텍스트를 추가하는 기능 ######################

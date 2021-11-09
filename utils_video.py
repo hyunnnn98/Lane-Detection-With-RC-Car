@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt, cm, colors
 # 현재 작업 디렉토리의 경로 가져오기
 CWD_PATH = os.getcwd()
 
-test_video = 'tracks/real_camera_3.mp4'
+test_video = 'tracks/real_camera_2.mp4'
 
 ################################################################################
 #### START - FUNCTION TO READ AN RSP CAMERA VIDEO #############################
@@ -91,9 +91,9 @@ def processImage(inpImage, custom_green, custon_red, custom_white, custom_white_
     # cv2.imshow("Image", inpImage)
     # cv2.imshow("HLS Filtered", hls_result)
     # cv2.imshow("Grayscale", gray)
-    # cv2.imshow("Thresholded", thresh)
+    cv2.imshow("Thresholded", thresh)
     # cv2.imshow("Blurred", blur)
-    cv2.imshow("Canny Edges", canny)
+    # cv2.imshow("Canny Edges", canny)
 
     return hls_result, gray, thresh, blur, canny
 #### END - FUNCTION TO PROCESS IMAGE ###########################################
@@ -130,10 +130,10 @@ def perspectiveWarp(inpImage):
     #                   [width-400, 150]])
 
     # 🐸 ( real_camera_2 Type 1 넓은 시야 )
-    src = np.float32([[0, 620],
-                      [width-90, 620],
-                      [170, 370],
-                      [955, 370]])
+    src = np.float32([[0, 580],
+                      [width-90, 580],
+                      [170, 400],
+                      [955, 400]])
 
     # Window to be shown
     # 표시할 윈도우
