@@ -97,7 +97,8 @@ def slide_window_search(binary_warped, histogram):
     out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
 
     # plt.imshow(out_img)
-    cv2.imshow('sliding_window', out_img)
+    
+    cv2.imshow('sliding_window', cv2.flip(cv2.resize(out_img, (320, 180)), 0))
 
     plt.plot(left_fitx,  ploty, color='yellow')
     plt.plot(right_fitx, ploty, color='yellow')
@@ -275,11 +276,11 @@ def addText(img, radius, direction, deviation, devDirection):
     font_rgb = (240, 248, 255)
 
     if (direction != 'Straight'):
-        text = 'Radius of Curvature: ' + '{:04.0f}'.format(radius) + 'm'
+        text = 'Curvature: ' + '{:04.0f}'.format(radius) + 'm'
         text1 = 'Curve Direction: ' + (direction)
 
     else:
-        text = 'Radius of Curvature: ' + 'N/A'
+        text = 'Curvature: ' + 'N/A'
         text1 = 'Curve Direction: ' + (direction)
 
     cv2.putText(img, text, (400, 180), font, 0.8, font_rgb, 2, cv2.LINE_AA)
@@ -303,7 +304,7 @@ def addText(img, radius, direction, deviation, devDirection):
     if devDirection == 'left':
         steeringWheelRadius = steeringWheelRadius * -1
 
-    print('🐸 방향:', direction, ', 🎃 서브 모터:', devDirection)
+    # print('🐸 방향:', direction, ', 🎃 서브 모터:', devDirection)
 
     return img, steeringWheelRadius
 #### END - 최종 이미지에 주행 정보 텍스트를 추가하는 기능 ######################

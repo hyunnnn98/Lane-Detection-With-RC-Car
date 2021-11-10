@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt, cm, colors
 # 현재 작업 디렉토리의 경로 가져오기
 CWD_PATH = os.getcwd()
 
-test_video = 'tracks/real_camera_3.mp4'
+test_video = 'tracks/real_camera_2.mp4'
 
 ################################################################################
 #### START - FUNCTION TO READ AN RSP CAMERA VIDEO #############################
@@ -63,48 +63,29 @@ def readVideo():
 
 ################################################################################
 #### START - FUNCTION TO PROCESS IMAGE #########################################
-def processImage(inpImage, custom_green, custon_red, custom_white, custom_white_row, custom_thresh):
-    # 그림자 영역 제거
-    # green_threshold = custom_green
-    # thresholds = (inpImage[:, :, 1] < green_threshold) | (
-    #     inpImage[:, :, 2] < custon_red)
-    # inpImage[thresholds] = [0, 0, 0]
-
-    # Apply HLS color filtering to filter out white lane lines
-    # ( 흰색 영역 HSL 필터 )
-    # hls = cv2.cvtColor(inpImage, cv2.COLOR_BGR2HSV)
-
-    # default = 0, 130, 10
-    # lower_white = np.array([0, custom_white, custom_white_row])
-    # upper_white = np.array([255, 255, 255])     # default = 255, 255, 255
-    # mask = cv2.inRange(inpImage, lower_white, upper_white)
-
-    # Convert image to grayscale, apply threshold, blur & extract edges
-    gray = cv2.cvtColor(inpImage, cv2.COLOR_BGR2GRAY)
-    ret, thresh = cv2.threshold(
-        gray, custom_thresh, 255, cv2.THRESH_BINARY)      # default = 160, 255 ( 🍒 흰 or 검... 범위 설정)
+def processImage(inpImage):
     # 🎃 adaptiveThreshold 백업..
     # th2 = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_MEAN_C,
     #                             cv2.THRESH_BINARY, 15, 2)
-    th2 = cv2.adaptiveThreshold(
+    
+    # Convert image to grayscale, apply threshold, blur & extract edges
+    gray = cv2.cvtColor(inpImage, cv2.COLOR_BGR2GRAY)
+    
+    # threshold 평균치 계산
+    avg_thr = cv2.adaptiveThreshold(
         gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 21, 2)
-    blur = cv2.GaussianBlur(th2, (3, 3), 0)
-    hls_result = cv2.bitwise_not(blur)
-    canny = cv2.Canny(blur, 60, 180)             # default = 40, 60
-
-
-    # Display the processed images
-    # cv2.imshow("Image", inpImage)
-    # cv2.imshow("HLS Filtered", cv2.flip(hls_result, 0))
-    cv2.imshow("th2", cv2.flip(canny, 0))
-    # plt.imshow(cv2.flip(blur, 0))
-    print(cv2.flip(blur, 0)[700][600])
-    # plt.show()
+    
+    # 이미지 블러 처리
+    blur = cv2.GaussianBlur(avg_thr, (3, 3), 0)
+    
+    thresh_result = cv2.bitwise_not(blur)
+    
+    # canny = cv2.Canny(blur, 60, 180)             # default = 40, 60
     # cv2.imshow("Thresholded", thresh)
     # cv2.imshow("Blurred", blur)
     # cv2.imshow("Canny Edges", canny)
 
-    return hls_result, gray, hls_result, blur, canny
+    return thresh_result
 #### END - FUNCTION TO PROCESS IMAGE ###########################################
 ################################################################################
 

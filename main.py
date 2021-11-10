@@ -16,28 +16,24 @@ import time
 import numpy as np
 
 # IMPORT NECESSARY UTILS
-from utils_video import gstreamerPipeline, readVideo, processImage, perspectiveWarp, plotHistogram
-from utils_steering import steeringAngle, steeringText
-from utils_lane_deceting import slide_window_search, general_search, measure_lane_curvature, draw_lane_lines, offCenter, addText
-from utils_arduino import sendToArduino
+from utils_video import *
+from utils_lane_deceting import *
 from utils_calibration import calib, undistort
+from utils_steering import steeringAngle, steeringText
+from utils_arduino import sendToArduino
+from utils_exception_handler import LaneFrame
 
 
 def onMouse(x):
     pass
 
-custom_green = 125
-custom_red = 190
-custom_white = 110
-custom_white_row = 10
-custom_thresh = 120
-
-
 ################################################################################
 ######## START - MAIN FUNCTION #################################################
 ################################################################################
 
+
 DETECTION_ERR_COUNT = 0
+CALIBRATION_COUNT = 0
 
 # 🍒 Read the input image
 image = readVideo()
@@ -45,14 +41,15 @@ image = readVideo()
 # 🍒 camera matrix & distortion coefficient
 mtx, dist = calib()
 
+# 🍒 back up lane frame img
+LaneFrame = LaneFrame()
+
 # 🍒 Read the arduino signal
 try:
     servo = serial.Serial('COM11', 9600, timeout=1)
     time.sleep(1)
 except:
     print("Error timeout arduino...")
-
-temp_frame = None
 
 ################################################################################
 #### START - LOOP TO PLAY THE INPUT IMAGE ######################################
@@ -72,12 +69,7 @@ while True:
         # 🐸 birdView 가 적용된 이미지 불러오기
         # 1. "processImage()" 함수를 호출하여 이미지 처리 적용
         # 2. 각각의 변수(img, hls, grayscale, thresh, blur, canny)를 할당
-        hls, grayscale, thresh, blur, canny = processImage(
-            birdView, custom_green, custom_red, custom_white, custom_white_row, custom_thresh)
-        # hlsL, grayscaleL, threshL, blurL, cannyL = processImage(
-        #     birdViewL)
-        # hlsR, grayscaleR, threshR, blurR, cannyR = processImage(
-        #     birdViewR)
+        thresh = processImage(birdView)
 
         # 🐸 좌 / 우 차선 구별
         # 1. 밝기 값이 적용된 thresh 파일 불러오기
@@ -88,20 +80,43 @@ while True:
         ploty, left_fit, right_fit, left_fitx, right_fitx = slide_window_search(
             thresh, hist)
 
+        # 🐸 차선 라인 평균값 도출
+        draw_info = general_search(thresh, left_fit, right_fit)
+
+        # 🐸 차선 곡률 반경 측정
+        curveRad, curveDir = measure_lane_curvature(
+            ploty, left_fitx, right_fitx)
+
+        # 🐸 차선 인식 예외처리
+        # 1. 예외 알고리즘 1 ) 오른쪽 mean - 왼쪽 mean == 250 정도.. ?
+        # 2. 예외 알고리즘 2 ) 왼쪽은 100 ~ 300, 오른쪽은 1000 ~ 1200
+        # or curveRad > 3000
         right_fit_x_avg = int(np.mean(right_fitx))
         left_fit_x_avg = int(np.mean(left_fitx))
-        # 왼쪽은 100 ~ 300, 오른쪽은 1000 ~ 1200
+
+        overed_lane_detected = right_fit_x_avg - left_fit_x_avg > 1000
+        overed_lane_curveRad = curveRad > 3500
+        left_lane_detected = left_fit_x_avg < 100 or left_fit_x_avg > 300
+        right_lane_detected = right_fit_x_avg < 1000 or right_fit_x_avg > 1200
+
+        if (left_lane_detected or right_lane_detected or overed_lane_detected or overed_lane_curveRad):
+            # 🐢 차선 인식 실패에 따른 예외처리 알고리즘 시작
+
+            if LaneFrame.checkBackedImg():
+                CALIBRATION_COUNT += 1
+                print("✅ 라인 보정 알고리즘 작동 : " , CALIBRATION_COUNT)
+                thresh, minverse, draw_info, curveRad, curveDir = LaneFrame.loadFrameData()
+
+            else:
+                print("❌ 백업된 라인 이미지가 없음")
+
+        else:
+            # 🐢 허용 오차 범위 안의 영상 데이터 백업
+            LaneFrame.saveFrameData(
+                thresh, minverse, draw_info, curveRad, curveDir)
         # print(left_fit_x_avg, " : ", right_fit_x_avg)
         # if right_fit[0] > 3:
         #     print("오른쪽 차선 인식 불가!")
-        draw_info = general_search(thresh, left_fit, right_fit)
-
-        curveRad, curveDir = measure_lane_curvature(
-            ploty, left_fitx, right_fitx)
-        
-        # plt.plot(hist)
-        # plt.plot(left_fit)
-        # plt.show()
 
         # 🐸 감지된 차선 영역을 파란색으로 채우기
         meanPts, result = draw_lane_lines(frame, thresh, minverse, draw_info)
@@ -121,7 +136,7 @@ while True:
         # sendToArduino(servo, strDegrees)
 
         # 🐸 최종 이미지 출력
-        # cv2.imshow("steering wheel", steer)
+        cv2.imshow("steering wheel", steer)
         cv2.imshow("Final", finalImg)
 
         # cv2.waitKey(1000)
