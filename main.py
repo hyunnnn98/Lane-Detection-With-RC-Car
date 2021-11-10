@@ -21,7 +21,7 @@ from utils_lane_deceting import *
 from utils_calibration import calib, undistort
 from utils_steering import steeringAngle, steeringText
 from utils_arduino import sendToArduino
-from utils_exception_handler import LaneFrame
+from utils_exception_handler import LaneFrame, exception_handler
 
 
 def onMouse(x):
@@ -88,23 +88,15 @@ while True:
             ploty, left_fitx, right_fitx)
 
         # 🐸 차선 인식 예외처리
-        # 1. 예외 알고리즘 1 ) 오른쪽 mean - 왼쪽 mean == 250 정도.. ?
-        # 2. 예외 알고리즘 2 ) 왼쪽은 100 ~ 300, 오른쪽은 1000 ~ 1200
-        # or curveRad > 3000
-        right_fit_x_avg = int(np.mean(right_fitx))
-        left_fit_x_avg = int(np.mean(left_fitx))
+        is_error_lane_detected = exception_handler(
+            left_fitx, right_fitx, curveRad)
+        
+        if is_error_lane_detected:
 
-        overed_lane_detected = right_fit_x_avg - left_fit_x_avg > 1000
-        overed_lane_curveRad = curveRad > 3500
-        left_lane_detected = left_fit_x_avg < 100 or left_fit_x_avg > 300
-        right_lane_detected = right_fit_x_avg < 1000 or right_fit_x_avg > 1200
-
-        if (left_lane_detected or right_lane_detected or overed_lane_detected or overed_lane_curveRad):
             # 🐢 차선 인식 실패에 따른 예외처리 알고리즘 시작
-
             if LaneFrame.checkBackedImg():
                 CALIBRATION_COUNT += 1
-                print("✅ 라인 보정 알고리즘 작동 : " , CALIBRATION_COUNT)
+                print("✅ 라인 보정 알고리즘 작동 :", CALIBRATION_COUNT)
                 thresh, minverse, draw_info, curveRad, curveDir = LaneFrame.loadFrameData()
 
             else:
@@ -114,9 +106,6 @@ while True:
             # 🐢 허용 오차 범위 안의 영상 데이터 백업
             LaneFrame.saveFrameData(
                 thresh, minverse, draw_info, curveRad, curveDir)
-        # print(left_fit_x_avg, " : ", right_fit_x_avg)
-        # if right_fit[0] > 3:
-        #     print("오른쪽 차선 인식 불가!")
 
         # 🐸 감지된 차선 영역을 파란색으로 채우기
         meanPts, result = draw_lane_lines(frame, thresh, minverse, draw_info)
@@ -142,7 +131,7 @@ while True:
         # cv2.waitKey(1000)
     except:
         DETECTION_ERR_COUNT += 1
-        print("라인 검출 에러 카운트 : ", DETECTION_ERR_COUNT)
+        print("❌ 라인 검출 알고리즘 오류 :", DETECTION_ERR_COUNT)
 
     # Wait for the ENTER key to be pressed to stop playback
     if cv2.waitKey(1) & 0xFF == ord('q'):
