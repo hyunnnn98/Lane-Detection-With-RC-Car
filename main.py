@@ -13,27 +13,19 @@ import cv2
 import serial
 import time
 
-import numpy as np
-
 # IMPORT NECESSARY UTILS
 from utils_video import *
 from utils_lane_deceting import *
 from utils_calibration import calib, undistort
 from utils_steering import steeringAngle, steeringText
-from utils_arduino import sendToArduino
 from utils_exception_handler import LaneFrame, exception_handler
+from utils_arduino import sendToArduino
+from utils_constants import *
 
-
-def onMouse(x):
-    pass
 
 ################################################################################
 ######## START - MAIN FUNCTION #################################################
 ################################################################################
-
-
-DETECTION_ERR_COUNT = 0
-CALIBRATION_COUNT = 0
 
 # 🍒 Read the input image
 image = readVideo()
@@ -46,7 +38,7 @@ LaneFrame = LaneFrame()
 
 # 🍒 Read the arduino signal
 try:
-    servo = serial.Serial('COM11', 9600, timeout=1)
+    servo = serial.Serial(ARDUINO_CONNECT_PORT, 9600, timeout=1)
     time.sleep(1)
 except:
     print("Error timeout arduino...")
@@ -91,7 +83,7 @@ while True:
         is_error_lane_detected = exception_handler(
             left_fitx, right_fitx, curveRad)
         
-        if is_error_lane_detected:
+        if CALIBRATION_MODE and is_error_lane_detected:
 
             # 🐢 차선 인식 실패에 따른 예외처리 알고리즘 시작
             if LaneFrame.checkBackedImg():

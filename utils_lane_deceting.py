@@ -205,10 +205,10 @@ def measure_lane_curvature(ploty, leftx, rightx):
     # print(left_curverad, 'm', right_curverad, 'm')
 
     # 왼쪽 or 오른쪽 커브인지 결정 ( default value = 60 )
-    if leftx[0] - leftx[-1] > 80:
-        curve_direction = 'Left Curve'
-    elif leftx[-1] - leftx[0] > 80:
+    if leftx[0] - leftx[-1] > 300:
         curve_direction = 'Right Curve'
+    elif leftx[-1] - leftx[0] > 300:
+        curve_direction = 'Left Curve'
     else:
         curve_direction = 'Straight'
 

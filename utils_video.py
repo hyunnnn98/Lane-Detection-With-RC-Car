@@ -17,8 +17,6 @@ test_video = 'tracks/real_camera_2.mp4'
 
 ################################################################################
 #### START - FUNCTION TO READ AN RSP CAMERA VIDEO #############################
-
-
 def gstreamerPipeline(
     capture_width=1280,
     capture_height=720,
@@ -185,3 +183,6 @@ def plotHistogram(inpImage):
     return histogram, leftxBase, rightxBase
 #### END - FUNCTION TO PLOT THE HISTOGRAM OF WARPED IMAGE ######################
 ################################################################################
+
+def onMouse(x):
+    pass
