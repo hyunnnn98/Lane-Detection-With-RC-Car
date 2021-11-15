@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt, cm, colors
 # 현재 작업 디렉토리의 경로 가져오기
 CWD_PATH = os.getcwd()
 
-test_video = 'tracks/real_camera_2.mp4'
+test_video = 'tracks/real_camera_3.mp4'
 
 ################################################################################
 #### START - FUNCTION TO READ AN RSP CAMERA VIDEO #############################

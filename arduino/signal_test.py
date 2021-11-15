@@ -6,17 +6,18 @@ import serial
 import time
 import sys
 
-def sendToArduino(degree):
-    print("MOVE SERVO ANGLE TO ", degree)
 
-    degree = degree.encode('utf-8')
-    servo.write(val)
-    time.sleep(0.5)   
+def sendToArduino(steeringWheelRadius):
+    # print("MOVE SERVO ANGLE TO ", degree)
+
+    signal = str(steeringWheelRadius).encode('utf-8')
+    servo.write(signal)
+    # time.sleep(0.5)   
 
 
 try:
     servo = serial.Serial('COM12', 9600, timeout=1)
-    time.sleep(1)
+    # time.sleep(1)
 except:
     print("연결 실패...")
     sys.exit(0)
@@ -26,3 +27,6 @@ while True:
         val = input()
 
         sendToArduino(val)
+        res = servo.readline()
+        print(res.decode()[:len(res)-1])
+        

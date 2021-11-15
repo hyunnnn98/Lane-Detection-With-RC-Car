@@ -39,7 +39,7 @@ LaneFrame = LaneFrame()
 # 🍒 Read the arduino signal
 try:
     servo = serial.Serial(ARDUINO_CONNECT_PORT, 9600, timeout=1)
-    time.sleep(1)
+    time.sleep(2)
 except:
     print("Error timeout arduino...")
 
@@ -50,6 +50,7 @@ while True:
     _, frame = image.read()
     try:
         # 🐸 camera calibration 적용하기
+        frame = cv2.resize(frame, (1280, 720))
         frame = undistort(frame, mtx, dist)
 
         # 🐸 birdView 적용하기
@@ -82,7 +83,7 @@ while True:
         # 🐸 차선 인식 예외처리
         is_error_lane_detected = exception_handler(
             left_fitx, right_fitx, curveRad)
-        
+
         if CALIBRATION_MODE and is_error_lane_detected:
 
             # 🐢 차선 인식 실패에 따른 예외처리 알고리즘 시작
@@ -113,8 +114,11 @@ while True:
         steer = steeringText(strDst, strDegrees)
 
         # 🐸 아두이노 서보 모터로 데이터 전송
-        # print(strDst, strDegrees)
-        # sendToArduino(servo, strDegrees)
+        try:
+            if servo.readable():
+                sendToArduino(servo, strDegrees)
+        except:
+            print('Arduino connection failed on Jetson nano...')
 
         # 🐸 최종 이미지 출력
         cv2.imshow("steering wheel", steer)

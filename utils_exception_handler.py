@@ -50,8 +50,8 @@ def exception_handler(left_fitx, right_fitx, curveRad):
     right_lane_detected = right_fit_x_avg < 1000 or right_fit_x_avg > 1250
     
     # dev mode
-    print(overed_lane_detected, overed_lane_curveRad,
-          left_lane_detected, right_fit_x_avg, right_lane_detected)
+    # print(overed_lane_detected, overed_lane_curveRad,
+    #       left_lane_detected, right_fit_x_avg, right_lane_detected)
     
     # 에러가 감지 된 경우
     if left_lane_detected or right_lane_detected or overed_lane_detected or overed_lane_curveRad:

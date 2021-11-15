@@ -184,7 +184,7 @@ def general_search(binary_warped, left_fit, right_fit):
 def measure_lane_curvature(ploty, leftx, rightx):
 
     # ( y축의 위에서 아래로 일치하도록 반전 )
-    leftx = leftx[::-1]  # Reverse to match top-to-bottom in y
+    leftx = leftx[::-1]    # Reverse to match top-to-bottom in y
     rightx = rightx[::-1]  # Reverse to match top-to-bottom in y
 
     # 이미지 하단에 해당하는 최대의 y 값 추출
@@ -201,9 +201,6 @@ def measure_lane_curvature(ploty, leftx, rightx):
                             right_fit_cr[1])**2)**1.5) / np.absolute(2*right_fit_cr[0])
 
     # 아래 return 반환 함수부터 곡률 반경은 미터 단위..!
-
-    # print(left_curverad, 'm', right_curverad, 'm')
-
     # 왼쪽 or 오른쪽 커브인지 결정 ( default value = 60 )
     if leftx[0] - leftx[-1] > 300:
         curve_direction = 'Right Curve'
