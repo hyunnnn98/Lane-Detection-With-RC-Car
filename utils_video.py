@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt, cm, colors
 # 현재 작업 디렉토리의 경로 가져오기
 CWD_PATH = os.getcwd()
 
-test_video = 'tracks/real_camera_3.mp4'
+test_video = 'tracks/real_camera_2.mp4'
 
 ################################################################################
 #### START - FUNCTION TO READ AN RSP CAMERA VIDEO #############################
@@ -118,22 +118,22 @@ def perspectiveWarp(inpImage):
     #                   [width-400, 150]])
 
     # 🐸 ( real_camera_2 Type 1 넓은 시야 )
-    src = np.float32([[0, 580],
-                      [width-90, 580],
-                      [170, 360],
-                      [905, 360]])
+    src = np.float32([[0, 270],
+                      [width-70, 270],
+                      [85, 150],
+                      [430, 150]])
     
-    # src = np.float32([[0, 580],             #좌하
-    #                   [width-90, 580],      #우하
-    #                   [0, 300],           #좌상
-    #                   [width, 300]])  # 우상
+    # src = np.float32([[0, 580],             # 좌하
+    #                   [width-90, 580],      # 우하
+    #                   [0, 300],             # 좌상
+    #                   [width, 300]])        # 우상
 
     # Window to be shown
     # 표시할 윈도우
     dst = np.float32([[0, 0],         # 480
-                      [1280, 0],         # 800
-                      [0, 720],
-                      [1280, 720]])
+                      [640, 0],         # 800
+                      [0, 360],
+                      [640, 360]])
 
     # Matrix to warp the image for birdseye window
     # Birdseye 창의 이미지를 왜곡하는 매트릭스

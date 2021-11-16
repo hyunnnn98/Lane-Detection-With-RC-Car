@@ -50,7 +50,7 @@ while True:
     _, frame = image.read()
     try:
         # 🐸 camera calibration 적용하기
-        frame = cv2.resize(frame, (1280, 720))
+        frame = cv2.resize(frame, (640, 360))
         frame = undistort(frame, mtx, dist)
 
         # 🐸 birdView 적용하기
@@ -89,7 +89,7 @@ while True:
             # 🐢 차선 인식 실패에 따른 예외처리 알고리즘 시작
             if LaneFrame.checkBackedImg():
                 CALIBRATION_COUNT += 1
-                print("✅ 라인 보정 알고리즘 작동 :", CALIBRATION_COUNT)
+                # print("✅ 라인 보정 알고리즘 작동 :", CALIBRATION_COUNT)
                 thresh, minverse, draw_info, curveRad, curveDir = LaneFrame.loadFrameData()
 
             else:
@@ -124,7 +124,7 @@ while True:
         cv2.imshow("steering wheel", steer)
         cv2.imshow("Final", finalImg)
 
-        # cv2.waitKey(1000)
+        cv2.waitKey(100)
     except:
         DETECTION_ERR_COUNT += 1
         print("❌ 라인 검출 알고리즘 오류 :", DETECTION_ERR_COUNT)

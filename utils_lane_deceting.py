@@ -35,8 +35,8 @@ def slide_window_search(binary_warped, histogram):
     nonzerox = np.array(nonzero[1])
     leftx_current = leftx_base
     rightx_current = rightx_base
-    margin = 60
-    minpix = 130
+    margin = 30
+    minpix = 65
     left_lane_inds = []
     right_lane_inds = []
 
@@ -102,8 +102,8 @@ def slide_window_search(binary_warped, histogram):
 
     plt.plot(left_fitx,  ploty, color='yellow')
     plt.plot(right_fitx, ploty, color='yellow')
-    plt.xlim(0, 1280)
-    plt.ylim(720, 0)
+    plt.xlim(0, 640)
+    plt.ylim(360, 0)
 
     return ploty, left_fit, right_fit, ltx, rtx
 #### END - 루프를 통해 창을 반복 -> 차선 검출 알고리즘 #########################
@@ -117,7 +117,7 @@ def general_search(binary_warped, left_fit, right_fit):
     nonzero = binary_warped.nonzero()
     nonzeroy = np.array(nonzero[0])
     nonzerox = np.array(nonzero[1])
-    margin = 100
+    margin = 50
     left_lane_inds = ((nonzerox > (left_fit[0]*(nonzeroy**2) + left_fit[1]*nonzeroy +
                                    left_fit[2] - margin)) & (nonzerox < (left_fit[0]*(nonzeroy**2) +
                                                                          left_fit[1]*nonzeroy + left_fit[2] + margin)))
@@ -164,8 +164,8 @@ def general_search(binary_warped, left_fit, right_fit):
 
     plt.plot(left_fitx,  ploty, color='yellow')
     plt.plot(right_fitx, ploty, color='yellow')
-    plt.xlim(0, 1280)
-    plt.ylim(720, 0)
+    plt.xlim(0, 640)
+    plt.ylim(360, 0)
 
     ret = {}
     ret['leftx'] = leftx
@@ -202,9 +202,9 @@ def measure_lane_curvature(ploty, leftx, rightx):
 
     # 아래 return 반환 함수부터 곡률 반경은 미터 단위..!
     # 왼쪽 or 오른쪽 커브인지 결정 ( default value = 60 )
-    if leftx[0] - leftx[-1] > 300:
+    if leftx[0] - leftx[-1] > 150:
         curve_direction = 'Right Curve'
-    elif leftx[-1] - leftx[0] > 300:
+    elif leftx[-1] - leftx[0] > 150:
         curve_direction = 'Left Curve'
     else:
         curve_direction = 'Straight'
@@ -280,16 +280,16 @@ def addText(img, radius, direction, deviation, devDirection):
         text = 'Curvature: ' + 'N/A'
         text1 = 'Curve Direction: ' + (direction)
 
-    cv2.putText(img, text, (400, 180), font, 0.8, font_rgb, 2, cv2.LINE_AA)
-    cv2.putText(img, text1, (400, 230), font, 0.8, font_rgb, 2, cv2.LINE_AA)
+    cv2.putText(img, text, (160, 60), font, 0.7, font_rgb, 2, cv2.LINE_AA)
+    cv2.putText(img, text1, (160, 90), font, 0.7, font_rgb, 2, cv2.LINE_AA)
 
     steeringWheelRadius = round(abs(deviation), 3)
 
     # Deviation ( 편차 )
     deviation_text = 'Off Center: ' + \
         str(steeringWheelRadius) + 'm' + ' to the ' + devDirection
-    cv2.putText(img, deviation_text, (400, 280),
-                font, 0.8, font_rgb, 2, cv2.LINE_AA)
+    cv2.putText(img, deviation_text, (160, 120),
+                font, 0.7, font_rgb, 2, cv2.LINE_AA)
 
     if direction == 'Straight':
         direction = '직진 코스'
