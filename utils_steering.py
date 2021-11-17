@@ -6,7 +6,7 @@ swheel = cv2.imread('images/steering_wheel_image.png', 0)
 swheelRows, swheelCols = swheel.shape
 
 smoothed_angle = 0
-calibrate_degrees = 5
+calibrate_degrees = 2
 
 ################################################################################
 #### START - Steering_GUI ######################################################

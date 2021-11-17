@@ -2,14 +2,14 @@
 
 
 Servo servo;
-int SERVO_PIN_NUM = 9;
-char input_data;
+int moterPinNumber = 9;
+int input_data;
 
 void setup() {
-  servo.attach(SERVO_PIN_NUM);
+  servo.attach(moterPinNumber);
   Serial.begin(9600);
   Serial.print("서보 모터 초기화..");
-//  servo.write(90);
+  servo.write(90);
 }
 
 void loop() {
@@ -41,10 +41,11 @@ void loop() {
   {
     moveAngle(115);
   } 
+
 }
 
 void moveAngle(int argAngle) {
-  Serial.print(argAngle + "각도로 이동합니다...");
+//  Serial.print(argAngle + "각도로 이동합니다...");
   servo.write(argAngle);
-  delay(500);
+//  delay(500);
 }

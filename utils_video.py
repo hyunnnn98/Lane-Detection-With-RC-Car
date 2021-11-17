@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt, cm, colors
 # 현재 작업 디렉토리의 경로 가져오기
 CWD_PATH = os.getcwd()
 
-test_video = 'tracks/output.avi'
+test_video = 'tracks/real_camera_4_shadow.avi'
 
 ################################################################################
 #### START - FUNCTION TO READ AN RSP CAMERA VIDEO #############################
@@ -22,7 +22,7 @@ def gstreamerPipeline(
     capture_height=360,
     display_width=640,
     display_height=360,
-    framerate=60,
+    framerate=30,
     flip_method=0,
 ):
     return (
@@ -53,7 +53,9 @@ def readVideo():
 
     # Read input video from current working directory
     # inpImage = cv2.VideoCapture(os.path.join(CWD_PATH, test_video))
-    inpImage = cv2.VideoCapture(gstreamerPipeline())
+    inpImage = cv2.VideoCapture(gstreamerPipeline(), cv2.CAP_GSTREAMER)
+    
+    
 
     return inpImage
 #### END - FUNCTION TO READ AN INPUT IMAGE #####################################
@@ -119,8 +121,8 @@ def perspectiveWarp(inpImage):
     #                   [width-400, 150]])
 
     # 🐸 ( real_camera_2 Type 1 넓은 시야 )
-    src = np.float32([[0, 270],
-                      [width-70, 270],
+    src = np.float32([[0, 240],
+                      [width-70, 240],
                       [85, 150],
                       [430, 150]])
     

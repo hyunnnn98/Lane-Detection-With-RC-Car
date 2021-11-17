@@ -40,15 +40,15 @@ def exception_handler(left_fitx, right_fitx, curveRad):
     
     right_fit_x_avg = int(np.mean(right_fitx))
     left_fit_x_avg = int(np.mean(left_fitx))
-    # print(left_fit_x_avg, right_fit_x_avg, curveRad)
+    # print((right_fit_x_avg - left_fit_x_avg) , left_fit_x_avg, right_fit_x_avg, curveRad)
     
     # 1. 예외 알고리즘 1 ) 오른쪽 mean - 왼쪽 mean == 250 정도.. ?
     # 2. 예외 알고리즘 2 ) 왼쪽은 100 ~ 300, 오른쪽은 1000 ~ 1200
     # 3. 곡률반경(=curveRad) > 3000
-    overed_lane_detected = right_fit_x_avg - left_fit_x_avg > 500
+    overed_lane_detected = right_fit_x_avg - left_fit_x_avg > 450
     overed_lane_curveRad = curveRad > 2000
-    left_lane_detected = left_fit_x_avg < 50 or left_fit_x_avg > 120
-    right_lane_detected = right_fit_x_avg < 500 or right_fit_x_avg > 625
+    left_lane_detected = left_fit_x_avg < 60 or left_fit_x_avg > 140
+    right_lane_detected = right_fit_x_avg < 500 or right_fit_x_avg > 605
     
     # dev mode
     # print(overed_lane_detected, overed_lane_curveRad,

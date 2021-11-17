@@ -8,11 +8,11 @@ import numpy as np
 import os
 from matplotlib import pyplot as plt, cm, colors
 # 🍒 meter-to-pixel 변환을 유지하기 위한 변수 정의
-ym_per_pix = 30 / 720
+ym_per_pix = 30 / 360
 
 # 🍒 표준 차선 너비 3.7m를 차선 너비(픽셀)로 나눈 값으로
 # 계산할때는 프레임의 높이와 혼동하지 않기 위해 약 720 픽셀로 계산
-xm_per_pix = 12 / 720  # ( 기본 값 : 3.7m )
+xm_per_pix = 12 / 360  # ( 기본 값 : 3.7m )
 
 ################################################################################
 #### START - APPLY SLIDING WINDOW METHOD TO DETECT CURVES ######################
@@ -98,7 +98,7 @@ def slide_window_search(binary_warped, histogram):
 
     # plt.imshow(out_img)
     
-    # cv2.imshow('sliding_window', cv2.flip(cv2.resize(out_img, (320, 180)), 0))
+    cv2.imshow('sliding_window', cv2.flip(cv2.resize(out_img, (320, 180)), 0))
 
     plt.plot(left_fitx,  ploty, color='yellow')
     plt.plot(right_fitx, ploty, color='yellow')
@@ -242,7 +242,7 @@ def draw_lane_lines(original_image, warped_image, Minv, draw_info):
     # print('중심축 : ', pts_mean)
     newwarp = cv2.warpPerspective(
         color_warp, Minv, (img_x, img_y))
-    result = cv2.addWeighted(original_image, 1, newwarp, 0.5, 0)
+    result = cv2.addWeighted(original_image, 1, newwarp, 0.8, 0)
 
     return pts_mean, result
 #### END - 감지된 차선 영역을 시각적으로 보여주는 기능 #########################
@@ -294,9 +294,9 @@ def addText(img, radius, direction, deviation, devDirection):
     if direction == 'Straight':
         direction = '직진 코스'
     elif direction == 'Left Curve':
-        direction = '우회전 코스'
-    elif direction == 'Right Curve':
         direction = '좌회전 코스'
+    elif direction == 'Right Curve':
+        direction = '우회전 코스'
     
     if devDirection == 'left':
         steeringWheelRadius = steeringWheelRadius * -1
