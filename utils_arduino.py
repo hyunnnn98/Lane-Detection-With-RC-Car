@@ -4,11 +4,14 @@
 
 # 제어 값
 center_angle = 90
-weight_val = 10
+weight_val = 5
+
+def sendToEsc(signal):
+    return signal.encode('utf-8')
 
 def encodeValue(value):
     transVal = 'T' + str(value)
-    print(transVal)
+    # print(transVal)
     encodeStr = transVal.encode('utf-8')
     return encodeStr
 

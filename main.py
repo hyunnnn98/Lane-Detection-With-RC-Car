@@ -19,7 +19,7 @@ from utils_lane_deceting import *
 from utils_calibration import calib, undistort
 from utils_steering import steeringAngle, steeringText
 from utils_exception_handler import LaneFrame, exception_handler
-from utils_arduino import sendToArduino
+from utils_arduino import sendToArduino, sendToEsc
 from utils_constants import *
 
 
@@ -40,8 +40,11 @@ LaneFrame = LaneFrame()
 try:
     servo = serial.Serial(ARDUINO_CONNECT_PORT, 9600, timeout=1)
     time.sleep(2)
+    
+    # 🐸 start Esc moter
+    sendToEsc(ESC_START_SIGNAL)
 except:
-    print("Error timeout arduino...")
+    print("❌ Error timeout arduino...")
 
 ################################################################################
 #### START - LOOP TO PLAY THE INPUT IMAGE ######################################
@@ -50,7 +53,7 @@ while True:
     _, frame = image.read()
     try:
         # 🐸 camera calibration 적용하기
-        frame = cv2.resize(frame, (640, 360))
+        # frame = cv2.resize(frame, (640, 360))
         frame = undistort(frame, mtx, dist)
 
         # 🐸 birdView 적용하기
@@ -81,24 +84,24 @@ while True:
             ploty, left_fitx, right_fitx)
 
         # 🐸 차선 인식 예외처리
-        is_error_lane_detected = exception_handler(
-            left_fitx, right_fitx, curveRad)
+        # is_error_lane_detected = exception_handler(
+        #     left_fitx, right_fitx, curveRad)
 
-        if CALIBRATION_MODE and is_error_lane_detected:
+        # if CALIBRATION_MODE and is_error_lane_detected:
 
-            # 🐢 차선 인식 실패에 따른 예외처리 알고리즘 시작
-            if LaneFrame.checkBackedImg():
-                CALIBRATION_COUNT += 1
-                # print("✅ 라인 보정 알고리즘 작동 :", CALIBRATION_COUNT)
-                thresh, minverse, draw_info, curveRad, curveDir = LaneFrame.loadFrameData()
+        #     # 🐢 차선 인식 실패에 따른 예외처리 알고리즘 시작
+        #     if LaneFrame.checkBackedImg():
+        #         CALIBRATION_COUNT += 1
+        #         # print("✅ 라인 보정 알고리즘 작동 :", CALIBRATION_COUNT)
+        #         thresh, minverse, draw_info, curveRad, curveDir = LaneFrame.loadFrameData()
 
-            else:
-                print("❌ 백업된 라인 이미지가 없음")
+        #     else:
+        #         print("❌ 백업된 라인 이미지가 없음")
 
-        else:
-            # 🐢 허용 오차 범위 안의 영상 데이터 백업
-            LaneFrame.saveFrameData(
-                thresh, minverse, draw_info, curveRad, curveDir)
+        # else:
+        #     # 🐢 허용 오차 범위 안의 영상 데이터 백업
+        #     LaneFrame.saveFrameData(
+        #         thresh, minverse, draw_info, curveRad, curveDir)
 
         # 🐸 감지된 차선 영역을 파란색으로 채우기
         meanPts, result = draw_lane_lines(frame, thresh, minverse, draw_info)
@@ -112,19 +115,24 @@ while True:
         # 🐸 조향각 정보 Steering_GUI
         strDst, strDegrees = steeringAngle(steeringWheelRadius)
         steer = steeringText(strDst, strDegrees)
+        # print('🚙 조향 각도', strDegrees , '\n')
 
         # 🐸 아두이노 서보 모터로 데이터 전송
         try:
             if servo.readable():
                 sendToArduino(servo, strDegrees)
         except:
-            print('Arduino connection failed on Jetson nano...')
+            print('❌ Arduino connection failed...')
+            
+            print('✅ 아두이노 연결중... 2초간 정지')
+            servo = serial.Serial(ARDUINO_CONNECT_PORT, 9600, timeout=1)
+            time.sleep(2)
 
         # 🐸 최종 이미지 출력
         cv2.imshow("steering wheel", steer)
         cv2.imshow("Final", finalImg)
 
-        cv2.waitKey(100)
+        # cv2.waitKey(100)
     except:
         DETECTION_ERR_COUNT += 1
         print("❌ 라인 검출 알고리즘 오류 :", DETECTION_ERR_COUNT)
@@ -132,6 +140,14 @@ while True:
     # Wait for the ENTER key to be pressed to stop playback
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+    
+    if cv2.waitKey(1) & 0xFF == ord('p'):
+        # 🐸 stop Esc moter
+        sendToEsc(ESC_STOP_SIGNAL)
+        
+    if cv2.waitKey(1) & 0xFF == ord('s'):
+        # 🐸 start Esc moter
+        sendToEsc(ESC_START_SIGNAL)
 
 #### END - LOOP TO PLAY THE INPUT IMAGE ########################################
 ################################################################################

@@ -98,7 +98,7 @@ def slide_window_search(binary_warped, histogram):
 
     # plt.imshow(out_img)
     
-    cv2.imshow('sliding_window', cv2.flip(cv2.resize(out_img, (320, 180)), 0))
+    # cv2.imshow('sliding_window', cv2.flip(cv2.resize(out_img, (320, 180)), 0))
 
     plt.plot(left_fitx,  ploty, color='yellow')
     plt.plot(right_fitx, ploty, color='yellow')
@@ -301,7 +301,7 @@ def addText(img, radius, direction, deviation, devDirection):
     if devDirection == 'left':
         steeringWheelRadius = steeringWheelRadius * -1
 
-    # print('🐸 방향:', direction, ', 🎃 서브 모터:', devDirection)
+    print('🐸 방향:', direction, ', 🎃 서브 모터:', devDirection)
 
     return img, steeringWheelRadius
 #### END - 최종 이미지에 주행 정보 텍스트를 추가하는 기능 ######################
