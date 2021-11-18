@@ -19,9 +19,8 @@ from utils_lane_deceting import *
 from utils_calibration import calib, undistort
 from utils_steering import steeringAngle, steeringText
 from utils_exception_handler import LaneFrame, exception_handler
-from utils_arduino import sendToArduino, sendToEsc
+from utils_arduino import *
 from utils_constants import *
-
 
 ################################################################################
 ######## START - MAIN FUNCTION #################################################
@@ -35,11 +34,10 @@ mtx, dist = calib()
 
 # 🍒 back up lane frame img
 LaneFrame = LaneFrame()
-preStrDegrees = 90
 
 # 🍒 Read the arduino signal
 try:
-    servo = serial.Serial(ARDUINO_CONNECT_PORT, 9600, timeout=1)
+    servo = serial.Serial(ARDUINO_CONNECT_PORT, 9600)
     time.sleep(2)
 except:
     print("❌ Error timeout arduino...")
@@ -47,7 +45,6 @@ except:
 ################################################################################
 #### START - LOOP TO PLAY THE INPUT IMAGE ######################################
 while True:
-
     _, frame = image.read()
     try:
         # 🐸 camera calibration 적용하기
@@ -103,7 +100,6 @@ while True:
 
         # 🐸 감지된 차선 영역을 파란색으로 채우기
         meanPts, result = draw_lane_lines(frame, thresh, minverse, draw_info)
-        # print("편차 : ", int(meanPts[0][0][0]))
         deviation, directionDev = offCenter(meanPts, frame)
 
         # 🐸 차선 정보 추가
@@ -113,21 +109,19 @@ while True:
         # 🐸 조향각 정보 Steering_GUI
         strDst, strDegrees = steeringAngle(steeringWheelRadius)
         steer = steeringText(strDst, strDegrees)
-        # print('🚙 조향 각도', strDegrees , '\n')
+        # print('🚙 조향 각도', strDegrees)
 
         # 🐸 아두이노 서보 모터로 데이터 전송
         try:
-            if servo.readable():
-                if preStrDegrees != strDegrees:
-                    sendToArduino(servo, strDegrees)
-                
-                preStrDegrees = strDegrees
+            if PRE_STR_DEGREES != strDegrees:
+                servo.write(weightAngleValue(strDegrees))
+                PRE_STR_DEGREES = strDegrees
+
         except:
             print('❌ Arduino connection failed...')
-            
             print('✅ 아두이노 연결중... 2초간 정지')
-            servo = serial.Serial(ARDUINO_CONNECT_PORT, 9600, timeout=1)
-            time.sleep(2)
+            servo = serial.Serial(ARDUINO_CONNECT_PORT, 9600)
+            time.sleep(1)
 
         # 🐸 최종 이미지 출력
         cv2.imshow("steering wheel", steer)
@@ -138,19 +132,19 @@ while True:
         DETECTION_ERR_COUNT += 1
         print("❌ 라인 검출 알고리즘 오류 :", DETECTION_ERR_COUNT)
 
-    # Wait for the ENTER key to be pressed to stop playback
+    # 🐸 Wait for the ENTER key to be pressed to stop playback
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-    
+
+    # 🐸 Stop Esc
     if cv2.waitKey(1) & 0xFF == ord('p'):
-        # 🐸 stop Esc moter
         print("🐸 stop Esc moter")
-        sendToEsc(servo, ESC_STOP_SIGNAL)
-        
+        servo.write(sendToEsc(ESC_STOP_SIGNAL))
+
+    # 🐸 Start Esc
     if cv2.waitKey(1) & 0xFF == ord('s'):
-        # 🐸 start Esc moter
         print("🐸 start Esc moter")
-        sendToEsc(servo, ESC_START_SIGNAL)
+        servo.write(sendToEsc(ESC_START_SIGNAL))
 
 #### END - LOOP TO PLAY THE INPUT IMAGE ########################################
 ################################################################################

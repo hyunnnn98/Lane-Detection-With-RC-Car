@@ -26,7 +26,7 @@ def steeringAngle(degrees):
     M = cv2.getRotationMatrix2D(
         (swheelCols/2, swheelRows/2), -smoothed_angle, 1)
     dst = cv2.warpAffine(swheel, M, (swheelCols, swheelRows))
-    strDegrees = round(smoothed_angle)
+    strDegrees = round(smoothed_angle) * -1
 
     return dst, strDegrees
 
