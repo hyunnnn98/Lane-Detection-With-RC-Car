@@ -112,16 +112,16 @@ while True:
         # print('🚙 조향 각도', strDegrees)
 
         # 🐸 아두이노 서보 모터로 데이터 전송
-        try:
-            if PRE_STR_DEGREES != strDegrees:
-                servo.write(weightAngleValue(strDegrees))
-                PRE_STR_DEGREES = strDegrees
+        # try:
+        #     if PRE_STR_DEGREES != strDegrees:
+        #         servo.write(weightAngleValue(strDegrees))
+        #         PRE_STR_DEGREES = strDegrees
 
-        except:
-            print('❌ Arduino connection failed...')
-            print('✅ 아두이노 연결중... 2초간 정지')
-            servo = serial.Serial(ARDUINO_CONNECT_PORT, 9600)
-            time.sleep(1)
+        # except:
+        #     print('❌ Arduino connection failed...')
+        #     print('✅ 아두이노 연결중... 2초간 정지')
+        #     servo = serial.Serial(ARDUINO_CONNECT_PORT, 9600)
+        #     time.sleep(1)
 
         # 🐸 최종 이미지 출력
         cv2.imshow("steering wheel", steer)
