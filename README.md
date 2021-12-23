@@ -8,9 +8,9 @@
 ![pipline](https://user-images.githubusercontent.com/52916934/147220970-418eb67a-6f4b-40e3-a997-52969b536316.png)
 
 ### Getting started
-- Ensure you have python3 and opencv installed Clone or fork the repo
-- python3 install to dependencies.
-- Add a track/{your video}.mp4 file.
-- Customize the ROI for your video ( /utils_video.py → def perspectiveWarp ).
+- Ensure you have python3 installed Clone or fork the repo
+- pip install to dependencies
+- Add a track/{your video}.mp4 file
+- Customize the ROI for your video ( /utils_video.py → def perspectiveWarp )
 
 Feel free to open an issue if you have any questions, or open a pull request if you would like to contribute.
